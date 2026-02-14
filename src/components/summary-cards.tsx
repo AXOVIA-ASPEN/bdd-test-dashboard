@@ -1,9 +1,10 @@
 'use client';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-import { CheckCircle2, XCircle, SkipForward, Activity } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, SkipForward } from 'lucide-react';
 
-const cards = [
+const cardDefs = [
   { key: 'total' as const, label: 'Total Tests', icon: Activity, color: 'text-accent', suffix: '' },
   { key: 'passRate' as const, label: 'Pass Rate', icon: CheckCircle2, color: 'text-emerald-400', suffix: '%' },
   { key: 'failed' as const, label: 'Failures', icon: XCircle, color: 'text-red-400', suffix: '' },
@@ -11,10 +12,25 @@ const cards = [
 ];
 
 export function SummaryCards() {
-  const summary = useDashboardStore(s => s.getGlobalSummary());
+  const projects = useDashboardStore(s => s.projects);
+  const runs = useDashboardStore(s => s.runs);
+
+  const summary = useMemo(() => {
+    const latestRuns = projects.map(p =>
+      runs.find(r => r.projectId === p.id)
+    ).filter(Boolean);
+    const s = latestRuns.reduce((acc, r) => ({
+      passed: acc.passed + (r!.summary?.passed || 0),
+      failed: acc.failed + (r!.summary?.failed || 0),
+      skipped: acc.skipped + (r!.summary?.skipped || 0),
+      total: acc.total + (r!.summary?.total || 0),
+    }), { passed: 0, failed: 0, skipped: 0, total: 0 });
+    return { ...s, passRate: s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0 };
+  }, [projects, runs]);
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((card, i) => (
+      {cardDefs.map((card, i) => (
         <motion.div
           key={card.key}
           initial={{ opacity: 0, y: 20 }}
@@ -27,7 +43,7 @@ export function SummaryCards() {
             <card.icon className={`w-5 h-5 ${card.color}`} />
           </div>
           <p className="text-3xl font-bold">
-            {summary[card.key]}{card.suffix || ''}
+            {summary[card.key]}{card.suffix}
           </p>
         </motion.div>
       ))}
