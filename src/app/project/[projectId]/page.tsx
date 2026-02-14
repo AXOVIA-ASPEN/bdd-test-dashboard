@@ -5,6 +5,7 @@ export function generateStaticParams() {
     { projectId: 'docmind' },
     { projectId: 'flipper-ai' },
     { projectId: 'real-random-portal' },
+    { projectId: 'bdd-test-dashboard' },
   ];
 }
 
