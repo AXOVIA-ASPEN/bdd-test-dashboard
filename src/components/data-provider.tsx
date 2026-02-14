@@ -27,9 +27,10 @@ function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const loaded = useRef(false);
+  const retryCount = useDashboardStore(s => s.retryCount);
 
   useEffect(() => {
-    if (loaded.current) return;
+    if (loaded.current && retryCount === 0) return;
     loaded.current = true;
 
     async function loadData() {
@@ -41,6 +42,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const projSnap = await getDocs(collection(db, 'projects'));
         const projects = projSnap.docs.map(d => ({ id: d.id, ...sanitize(d.data()) } as unknown as Project));
         useDashboardStore.getState().setProjects(projects);
+        useDashboardStore.getState().setError(null);
 
         try {
           const runsQuery = query(collection(db, 'runs'), orderBy('timestamp', 'desc'), limit(100));
@@ -57,13 +59,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load data from Firestore';
         console.error('Failed to load from Firestore:', err);
+        useDashboardStore.getState().setError(message);
       } finally {
         useDashboardStore.getState().setLoading(false);
       }
     }
     loadData();
-  }, []);
+  }, [retryCount]);
 
   return <>{children}</>;
 }
