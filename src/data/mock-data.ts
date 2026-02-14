@@ -53,18 +53,27 @@ function makeScenario(id: string, name: string, steps: Step[], tags: string[] = 
   return { id, name, status, steps, tags, duration: steps.reduce((a, s) => a + s.duration, 0) };
 }
 
-const now = Date.now();
+// Use a fixed reference date to avoid hydration mismatches between
+// static export (build-time) and client-side rendering.
+const REFERENCE_DATE = new Date('2026-02-14T12:00:00Z').getTime();
 const day = 86400000;
 
-// Helper to generate dates going back
+// Helper to generate dates going back from the fixed reference
 function daysAgo(n: number): string {
-  return new Date(now - n * day).toISOString();
+  return new Date(REFERENCE_DATE - n * day).toISOString();
+}
+
+// Seeded PRNG for deterministic "random" data (avoids hydration mismatch)
+let _seed = 42;
+function seededRandom(): number {
+  _seed = (_seed * 16807 + 0) % 2147483647;
+  return (_seed - 1) / 2147483646;
 }
 
 // ─── DOCMIND ────────────────────────────────────────────
 const docmindRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
   const d = 13 - i;
-  const passRate = 0.82 + Math.random() * 0.15;
+  const passRate = 0.82 + seededRandom() * 0.15;
   const features: Feature[] = [
     {
       id: `dm-f1-${i}`, name: 'Document Upload', description: 'Upload and process documents',
@@ -78,14 +87,14 @@ const docmindRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
         makeScenario(`dm-s2-${i}`, 'Upload invalid file type', [
           makeStep('Given', 'I am logged in as a standard user', 'passed', 110),
           makeStep('When', 'I upload an executable file "malware.exe"', 'passed', 200),
-          makeStep('Then', 'the system should reject the file', Math.random() > 0.3 ? 'passed' : 'failed', 90,
-            Math.random() > 0.3 ? undefined : 'AssertionError: Expected status 400 but got 200'),
+          makeStep('Then', 'the system should reject the file', seededRandom() > 0.3 ? 'passed' : 'failed', 90,
+            seededRandom() > 0.3 ? undefined : 'AssertionError: Expected status 400 but got 200'),
         ], ['@upload', '@security']),
         makeScenario(`dm-s3-${i}`, 'Bulk upload documents', [
           makeStep('Given', 'I have 10 documents ready to upload', 'passed', 50),
           makeStep('When', 'I select all documents and click "Upload All"', 'passed', 1200),
-          makeStep('Then', 'all 10 documents should be queued for processing', Math.random() > 0.2 ? 'passed' : 'failed', 300,
-            Math.random() > 0.2 ? undefined : 'TimeoutError: Upload queue did not process within 30s'),
+          makeStep('Then', 'all 10 documents should be queued for processing', seededRandom() > 0.2 ? 'passed' : 'failed', 300,
+            seededRandom() > 0.2 ? undefined : 'TimeoutError: Upload queue did not process within 30s'),
         ], ['@upload', '@bulk']),
       ]
     },
@@ -96,8 +105,8 @@ const docmindRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
           makeStep('Given', 'a scanned invoice is uploaded', 'passed', 80),
           makeStep('When', 'the AI analysis completes', 'passed', 2500),
           makeStep('Then', 'the extracted text should match the original content', 'passed', 150),
-          makeStep('And', 'confidence score should be above 95%', Math.random() > 0.15 ? 'passed' : 'failed', 30,
-            Math.random() > 0.15 ? undefined : 'AssertionError: Confidence 87% < 95%'),
+          makeStep('And', 'confidence score should be above 95%', seededRandom() > 0.15 ? 'passed' : 'failed', 30,
+            seededRandom() > 0.15 ? undefined : 'AssertionError: Confidence 87% < 95%'),
         ], ['@ai', '@ocr']),
         makeScenario(`dm-s5-${i}`, 'Classify document type automatically', [
           makeStep('Given', 'an unclassified document is in the queue', 'passed', 60),
@@ -151,8 +160,8 @@ const flipperRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
         makeScenario(`fl-s2-${i}`, 'Swipe to next card', [
           makeStep('Given', 'I am viewing the front of a card', 'passed', 60),
           makeStep('When', 'I swipe left', 'passed', 150),
-          makeStep('Then', 'the next card should slide in', Math.random() > 0.25 ? 'passed' : 'failed', 180,
-            Math.random() > 0.25 ? undefined : 'AnimationError: Swipe gesture not detected on touch device'),
+          makeStep('Then', 'the next card should slide in', seededRandom() > 0.25 ? 'passed' : 'failed', 180,
+            seededRandom() > 0.25 ? undefined : 'AnimationError: Swipe gesture not detected on touch device'),
         ], ['@animation', '@mobile']),
       ]
     },
@@ -168,7 +177,7 @@ const flipperRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
         makeScenario(`fl-s4-${i}`, 'Difficulty auto-adjustment', [
           makeStep('Given', 'I consistently answer "Photosynthesis" correctly', 'passed', 40),
           makeStep('When', 'the AI reviews my performance', 'passed', 600),
-          makeStep('Then', 'the card should be moved to a longer review interval', Math.random() > 0.1 ? 'passed' : 'skipped', 80),
+          makeStep('Then', 'the card should be moved to a longer review interval', seededRandom() > 0.1 ? 'passed' : 'skipped', 80),
         ], ['@ai', '@adaptive']),
       ]
     },
@@ -183,8 +192,8 @@ const flipperRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
         makeScenario(`fl-s6-${i}`, 'Import deck from CSV', [
           makeStep('Given', 'I have a CSV file with 200 cards', 'passed', 30),
           makeStep('When', 'I import the CSV file', 'passed', 500),
-          makeStep('Then', 'all 200 cards should be added to the deck', Math.random() > 0.2 ? 'passed' : 'failed', 200,
-            Math.random() > 0.2 ? undefined : 'ParseError: Invalid UTF-8 character at row 157'),
+          makeStep('Then', 'all 200 cards should be added to the deck', seededRandom() > 0.2 ? 'passed' : 'failed', 200,
+            seededRandom() > 0.2 ? undefined : 'ParseError: Invalid UTF-8 character at row 157'),
           makeStep('And', 'duplicate cards should be flagged', 'passed', 100),
         ], ['@import', '@csv']),
       ]
@@ -223,8 +232,8 @@ const portalRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
         makeScenario(`rr-s3-${i}`, 'Rate limiting enforcement', [
           makeStep('Given', 'I have a free-tier API key', 'passed', 30),
           makeStep('When', 'I make 101 requests in one minute', 'passed', 3000),
-          makeStep('Then', 'the 101st request should return 429 Too Many Requests', Math.random() > 0.15 ? 'passed' : 'failed', 50,
-            Math.random() > 0.15 ? undefined : 'AssertionError: Expected 429 but received 200 - rate limiter not enforcing'),
+          makeStep('Then', 'the 101st request should return 429 Too Many Requests', seededRandom() > 0.15 ? 'passed' : 'failed', 50,
+            seededRandom() > 0.15 ? undefined : 'AssertionError: Expected 429 but received 200 - rate limiter not enforcing'),
         ], ['@api', '@security', '@ratelimit']),
       ]
     },
@@ -235,8 +244,8 @@ const portalRuns: TestRun[] = Array.from({ length: 14 }, (_, i) => {
           makeStep('Given', 'I am on the registration page', 'passed', 60),
           makeStep('When', 'I fill in valid details and submit', 'passed', 300),
           makeStep('Then', 'my account should be created', 'passed', 100),
-          makeStep('And', 'I should receive a confirmation email', Math.random() > 0.3 ? 'passed' : 'failed', 2000,
-            Math.random() > 0.3 ? undefined : 'TimeoutError: Email not received within 30s'),
+          makeStep('And', 'I should receive a confirmation email', seededRandom() > 0.3 ? 'passed' : 'failed', 2000,
+            seededRandom() > 0.3 ? undefined : 'TimeoutError: Email not received within 30s'),
         ], ['@portal', '@registration']),
         makeScenario(`rr-s5-${i}`, 'Generate API key', [
           makeStep('Given', 'I am logged into the developer portal', 'passed', 80),
