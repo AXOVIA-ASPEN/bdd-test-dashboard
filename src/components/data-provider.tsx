@@ -1,50 +1,49 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { getDb } from '@/lib/firebase';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import type { Project, TestRun } from '@/store/use-dashboard-store';
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const { setProjects, setRuns, setLoading } = useDashboardStore();
+  const loaded = useRef(false);
 
   useEffect(() => {
+    if (loaded.current) return;
+    loaded.current = true;
+
     async function loadData() {
+      const store = useDashboardStore.getState();
       try {
-        setLoading(true);
+        store.setLoading(true);
         const db = getDb();
 
-        // Load projects first
         const projSnap = await getDocs(collection(db, 'projects'));
         const projects = projSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project));
-        setProjects(projects);
+        useDashboardStore.getState().setProjects(projects);
 
-        // Load runs separately - may fail if index not created yet
         try {
           const runsQuery = query(collection(db, 'runs'), orderBy('timestamp', 'desc'), limit(100));
           const runsSnap = await getDocs(runsQuery);
           const runs = runsSnap.docs.map(d => ({ id: d.id, ...d.data() } as TestRun));
-          setRuns(runs);
-        } catch (runsErr) {
-          console.warn('Runs query failed (index may be needed):', runsErr);
-          // Try without orderBy as fallback
+          useDashboardStore.getState().setRuns(runs);
+        } catch {
           try {
             const runsSnap = await getDocs(collection(db, 'runs'));
             const runs = runsSnap.docs.map(d => ({ id: d.id, ...d.data() } as TestRun));
-            setRuns(runs);
-          } catch (e2) {
-            console.warn('Runs fallback also failed:', e2);
-            setRuns([]);
+            useDashboardStore.getState().setRuns(runs);
+          } catch {
+            useDashboardStore.getState().setRuns([]);
           }
         }
       } catch (err) {
-        console.error('Failed to load data from Firestore:', err);
+        console.error('Failed to load from Firestore:', err);
       } finally {
-        setLoading(false);
+        useDashboardStore.getState().setLoading(false);
       }
     }
     loadData();
-  }, [setProjects, setRuns, setLoading]);
+  }, []);
 
   return <>{children}</>;
 }
