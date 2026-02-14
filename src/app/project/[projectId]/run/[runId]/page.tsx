@@ -1,8 +1,11 @@
-import { projects } from '@/data/mock-data';
 import RunClient from './client';
 
 export function generateStaticParams() {
-  return projects.flatMap(p => p.runs.map(r => ({ projectId: p.id, runId: r.id })));
+  return [
+    { projectId: 'docmind', runId: 'placeholder' },
+    { projectId: 'flipper-ai', runId: 'placeholder' },
+    { projectId: 'real-random-portal', runId: 'placeholder' },
+  ];
 }
 
 export default async function RunPage({ params }: { params: Promise<{ projectId: string; runId: string }> }) {

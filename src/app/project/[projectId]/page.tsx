@@ -1,8 +1,11 @@
-import { projects } from '@/data/mock-data';
 import ProjectClient from './client';
 
 export function generateStaticParams() {
-  return projects.map(p => ({ projectId: p.id }));
+  return [
+    { projectId: 'docmind' },
+    { projectId: 'flipper-ai' },
+    { projectId: 'real-random-portal' },
+  ];
 }
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
