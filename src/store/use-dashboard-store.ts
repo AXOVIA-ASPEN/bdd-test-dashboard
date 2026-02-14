@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import * as api from '@/lib/api';
 
 export type StepStatus = 'passed' | 'failed' | 'skipped';
 export type ScenarioStatus = 'passed' | 'failed' | 'skipped';
@@ -35,7 +34,7 @@ export interface TestRun {
   branch: string;
   environment?: string;
   duration: number;
-  status: string;
+  status?: string;
   tags?: string[];
   makeTarget?: string;
   error?: string;
@@ -61,10 +60,11 @@ interface DashboardState {
   loading: boolean;
   theme: Theme;
   toggleTheme: () => void;
-  fetchProjects: () => Promise<void>;
-  fetchRuns: (projectId?: string) => Promise<void>;
-  fetchRunDetail: (runId: string) => Promise<TestRun | null>;
+  setProjects: (projects: Project[]) => void;
+  setRuns: (runs: TestRun[]) => void;
+  setLoading: (loading: boolean) => void;
   getProject: (id: string) => Project | undefined;
+  getRun: (projectId: string, runId: string) => TestRun | undefined;
   getGlobalSummary: () => { passed: number; failed: number; skipped: number; total: number; passRate: number };
   getTrendData: (days: number) => { date: string; passRate: number; total: number }[];
 }
@@ -72,47 +72,20 @@ interface DashboardState {
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   projects: [],
   runs: [],
-  loading: false,
+  loading: true,
   theme: 'dark',
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
-
-  fetchProjects: async () => {
-    try {
-      const projects = await api.fetchProjects();
-      set({ projects });
-    } catch (err) {
-      console.error('Failed to fetch projects:', err);
-    }
-  },
-
-  fetchRuns: async (projectId?: string) => {
-    set({ loading: true });
-    try {
-      const runs = await api.fetchRuns(projectId);
-      set({ runs, loading: false });
-    } catch (err) {
-      console.error('Failed to fetch runs:', err);
-      set({ loading: false });
-    }
-  },
-
-  fetchRunDetail: async (runId: string) => {
-    try {
-      return await api.fetchRunDetail(runId);
-    } catch (err) {
-      console.error('Failed to fetch run detail:', err);
-      return null;
-    }
-  },
-
+  setProjects: (projects) => set({ projects }),
+  setRuns: (runs) => set({ runs }),
+  setLoading: (loading) => set({ loading }),
   getProject: (id) => get().projects.find(p => p.id === id),
+  getRun: (projectId, runId) => get().runs.find(r => r.projectId === projectId && r.id === runId),
 
   getGlobalSummary: () => {
     const { runs, projects } = get();
     const latestRuns = projects.map(p =>
       runs.find(r => r.projectId === p.id)
     ).filter(Boolean) as TestRun[];
-
     const s = latestRuns.reduce((acc, r) => ({
       passed: acc.passed + (r.summary?.passed || 0),
       failed: acc.failed + (r.summary?.failed || 0),
