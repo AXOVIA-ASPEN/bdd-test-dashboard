@@ -14,14 +14,29 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
         const db = getDb();
 
+        // Load projects first
         const projSnap = await getDocs(collection(db, 'projects'));
         const projects = projSnap.docs.map(d => ({ id: d.id, ...d.data() } as Project));
         setProjects(projects);
 
-        const runsQuery = query(collection(db, 'runs'), orderBy('timestamp', 'desc'), limit(100));
-        const runsSnap = await getDocs(runsQuery);
-        const runs = runsSnap.docs.map(d => ({ id: d.id, ...d.data() } as TestRun));
-        setRuns(runs);
+        // Load runs separately - may fail if index not created yet
+        try {
+          const runsQuery = query(collection(db, 'runs'), orderBy('timestamp', 'desc'), limit(100));
+          const runsSnap = await getDocs(runsQuery);
+          const runs = runsSnap.docs.map(d => ({ id: d.id, ...d.data() } as TestRun));
+          setRuns(runs);
+        } catch (runsErr) {
+          console.warn('Runs query failed (index may be needed):', runsErr);
+          // Try without orderBy as fallback
+          try {
+            const runsSnap = await getDocs(collection(db, 'runs'));
+            const runs = runsSnap.docs.map(d => ({ id: d.id, ...d.data() } as TestRun));
+            setRuns(runs);
+          } catch (e2) {
+            console.warn('Runs fallback also failed:', e2);
+            setRuns([]);
+          }
+        }
       } catch (err) {
         console.error('Failed to load data from Firestore:', err);
       } finally {
