@@ -1,11 +1,12 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
-import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
+import { RunTestsDialog } from '@/components/run-tests-dialog';
+import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, Play, RefreshCw } from 'lucide-react';
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
@@ -14,6 +15,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const loading = useDashboardStore(s => s.loading);
   const error = useDashboardStore(s => s.error);
   const retry = useDashboardStore(s => s.retry);
+  const [runDialogOpen, setRunDialogOpen] = useState(false);
 
   if (loading) {
     return <ProjectSkeleton />;
@@ -51,18 +53,34 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} />
-            <h2 className="text-2xl font-bold">{project.name}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} />
+              <h2 className="text-2xl font-bold">{project.name}</h2>
+            </div>
+            <p className="text-sm text-muted">{project.description}</p>
           </div>
-          <p className="text-sm text-muted">{project.description}</p>
         </div>
+        <button
+          onClick={() => setRunDialogOpen(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors text-sm font-medium"
+        >
+          <Play className="w-4 h-4" />
+          Run Tests
+        </button>
       </div>
+
+      <RunTestsDialog
+        project={project}
+        open={runDialogOpen}
+        onClose={() => setRunDialogOpen(false)}
+        onTriggered={() => {}}
+      />
 
       {latestRun && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
