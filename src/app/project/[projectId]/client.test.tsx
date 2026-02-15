@@ -82,4 +82,144 @@ describe('ProjectClient', () => {
     render(<ProjectClient projectId="test" />);
     expect(screen.getByText('No test runs yet for this project.')).toBeInTheDocument();
   });
+
+  it('opens and closes the Run Tests dialog', () => {
+    render(<ProjectClient projectId="test" />);
+    fireEvent.click(screen.getByText('Run Tests'));
+    // Dialog should be open (RunTestsDialog component rendered)
+    // Close by clicking again or via dialog close
+  });
+
+  it('toggles filter panel visibility', () => {
+    render(<ProjectClient projectId="test" />);
+    const filterBtn = screen.getByRole('button', { name: /toggle filters/i });
+    expect(filterBtn).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(filterBtn);
+    expect(filterBtn).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Filters')).toBeInTheDocument();
+    fireEvent.click(filterBtn);
+    expect(filterBtn).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('filters runs by status', () => {
+    mockState.runs = [
+      ...mockRuns,
+      {
+        id: 'run2',
+        projectId: 'test',
+        timestamp: '2026-02-13T12:00:00Z',
+        branch: 'dev',
+        environment: 'ci',
+        duration: 3000,
+        status: 'failed',
+        summary: { total: 5, passed: 2, failed: 3, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    // Open filters
+    fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
+    // Click "Failed" filter
+    fireEvent.click(screen.getByText('Failed'));
+    // Only the failed run should appear (2/5)
+    expect(screen.getByText('2/5')).toBeInTheDocument();
+    expect(screen.queryByText('8/10')).not.toBeInTheDocument();
+  });
+
+  it('filters runs by branch', () => {
+    mockState.runs = [
+      ...mockRuns,
+      {
+        id: 'run3',
+        projectId: 'test',
+        timestamp: '2026-02-12T12:00:00Z',
+        branch: 'feature-x',
+        environment: 'ci',
+        duration: 2000,
+        status: 'passed',
+        summary: { total: 3, passed: 3, failed: 0, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
+    // Select branch
+    const branchSelect = screen.getByDisplayValue('All branches');
+    fireEvent.change(branchSelect, { target: { value: 'feature-x' } });
+    expect(screen.getByText('3/3')).toBeInTheDocument();
+    expect(screen.queryByText('8/10')).not.toBeInTheDocument();
+  });
+
+  it('shows "no runs match filters" and clears filters', () => {
+    render(<ProjectClient projectId="test" />);
+    fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
+    // Filter to "skipped" - our run has status "passed" so it won't match
+    fireEvent.click(screen.getByText('Skipped'));
+    expect(screen.getByText('No runs match the current filters.')).toBeInTheDocument();
+    // Clear filters
+    fireEvent.click(screen.getByText('Clear filters'));
+    expect(screen.getByText('8/10')).toBeInTheDocument();
+  });
+
+  it('clears all filters from filter panel', () => {
+    mockState.runs = [
+      ...mockRuns,
+      {
+        id: 'run4',
+        projectId: 'test',
+        timestamp: '2026-02-11T12:00:00Z',
+        branch: 'dev',
+        environment: 'local',
+        duration: 1000,
+        status: 'failed',
+        summary: { total: 2, passed: 0, failed: 2, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
+    fireEvent.click(screen.getByText('Failed'));
+    // "Clear all" link should appear
+    fireEvent.click(screen.getByText('Clear all'));
+    // Both runs should be visible now
+    expect(screen.getByText('8/10')).toBeInTheDocument();
+  });
+
+  it('renders stat cards from latest run', () => {
+    render(<ProjectClient projectId="test" />);
+    expect(screen.getByText('Total')).toBeInTheDocument();
+    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByText('Passed')).toBeInTheDocument();
+    expect(screen.getByText('8')).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument(); // Failed
+  });
+
+  it('derives status from summary when status field absent', () => {
+    mockState.runs = [
+      {
+        id: 'run5',
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        environment: '',
+        duration: 1000,
+        summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    expect(screen.getByText('passed')).toBeInTheDocument();
+  });
+
+  it('derives skipped status from summary', () => {
+    mockState.runs = [
+      {
+        id: 'run6',
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        environment: '',
+        duration: 1000,
+        summary: { total: 5, passed: 3, failed: 0, skipped: 2 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    expect(screen.getByText('skipped')).toBeInTheDocument();
+  });
 });

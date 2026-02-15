@@ -82,8 +82,12 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   loading: true,
   error: null,
   lastFetchedAt: null,
-  theme: 'dark',
-  toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+  theme: (() => { try { return (localStorage.getItem('bdd-theme') as Theme) || 'dark'; } catch { return 'dark' as Theme; } })(),
+  toggleTheme: () => set(s => {
+    const next = s.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('bdd-theme', next); } catch {}
+    return { theme: next };
+  }),
   setProjects: (projects) => set({ projects }),
   setRuns: (runs) => set({ runs }),
   setLoading: (loading) => set({ loading }),
