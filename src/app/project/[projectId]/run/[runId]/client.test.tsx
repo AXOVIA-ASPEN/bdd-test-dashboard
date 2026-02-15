@@ -16,12 +16,24 @@ vi.mock('@/lib/firebase', () => ({
   getDb: () => ({}),
 }));
 
-vi.mock('firebase/firestore', () => ({
-  doc: vi.fn((_db: unknown, _col: string, id: string) => ({ id })),
-  collection: vi.fn(),
-  getDoc: (...args: unknown[]) => mockGetDoc(...args),
-  getDocs: (...args: unknown[]) => mockGetDocs(...args),
-}));
+vi.mock('firebase/firestore', () => {
+  class MockTimestamp {
+    seconds: number;
+    nanoseconds: number;
+    constructor(seconds: number, nanoseconds: number) {
+      this.seconds = seconds;
+      this.nanoseconds = nanoseconds;
+    }
+    toDate() { return new Date(this.seconds * 1000); }
+  }
+  return {
+    doc: vi.fn((_db: unknown, _col: string, id: string) => ({ id })),
+    collection: vi.fn(),
+    getDoc: (...args: unknown[]) => mockGetDoc(...args),
+    getDocs: (...args: unknown[]) => mockGetDocs(...args),
+    Timestamp: MockTimestamp,
+  };
+});
 
 vi.mock('framer-motion', () => ({
   motion: { div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div> },

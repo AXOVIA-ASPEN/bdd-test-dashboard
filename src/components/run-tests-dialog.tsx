@@ -1,8 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Terminal } from 'lucide-react';
-import { triggerRun } from '@/lib/api';
+import { X, Play, Terminal, Info } from 'lucide-react';
 import type { Project } from '@/store/use-dashboard-store';
 
 interface RunTestsDialogProps {
@@ -15,8 +14,6 @@ interface RunTestsDialogProps {
 export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTestsDialogProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [branch, setBranch] = useState('main');
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
 
   const tagStr = selectedTags.length > 0 ? selectedTags.join(' and ') : '';
   const cmdPreview = `make ${project.makeTarget}${tagStr ? ` TAGS="${tagStr}"` : ''}`;
@@ -27,25 +24,8 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
     );
   };
 
-  const handleSubmit = async () => {
-    setSubmitting(true);
-    setError('');
-    try {
-      const result = await triggerRun({
-        projectId: project.id,
-        repo: project.repo,
-        tags: selectedTags,
-        branch,
-        makeTarget: project.makeTarget,
-      });
-      onTriggered(result.runId);
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to trigger run');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // Suppress unused-var lint — kept so callers don't need changes
+  void onTriggered;
 
   return (
     <AnimatePresence>
@@ -72,6 +52,18 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
               <button onClick={onClose} className="p-1 rounded hover:bg-card-border/50">
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Coming Soon Notice */}
+            <div className="mb-5 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3">
+              <Info className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-amber-300 mb-1">Coming Soon</p>
+                <p className="text-xs text-muted">
+                  Remote test execution requires a Cloud Run backend that is not yet deployed.
+                  For now, run tests locally using the command below.
+                </p>
+              </div>
             </div>
 
             {/* Tags */}
@@ -110,31 +102,18 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
             <div className="mb-5 bg-background border border-card-border rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <Terminal className="w-3.5 h-3.5 text-muted" />
-                <span className="text-xs text-muted">Command Preview</span>
+                <span className="text-xs text-muted">Run locally</span>
               </div>
               <code className="text-sm text-accent font-mono">{cmdPreview}</code>
             </div>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
-                {error}
-              </div>
-            )}
-
-            {/* Submit */}
+            {/* Close */}
             <div className="flex gap-3 justify-end">
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-sm rounded-lg border border-card-border hover:bg-card-border/50 transition-colors"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="px-4 py-2 text-sm rounded-lg bg-accent text-white hover:bg-accent/80 transition-colors disabled:opacity-50"
-              >
-                {submitting ? 'Triggering...' : 'Run Tests'}
+                Close
               </button>
             </div>
           </motion.div>
