@@ -6,17 +6,36 @@ import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, Play, RefreshCw } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronRight, Filter, Loader2, Play, RefreshCw, Search, X } from 'lucide-react';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
+
+const STATUS_OPTIONS = ['all', 'passed', 'failed', 'skipped'] as const;
+type StatusFilter = (typeof STATUS_OPTIONS)[number];
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
   const allRuns = useDashboardStore(s => s.runs);
-  const runs = useMemo(() => allRuns.filter(r => r.projectId === projectId), [allRuns, projectId]);
+  const projectRuns = useMemo(() => allRuns.filter(r => r.projectId === projectId), [allRuns, projectId]);
   const loading = useDashboardStore(s => s.loading);
   const error = useDashboardStore(s => s.error);
   const retry = useDashboardStore(s => s.retry);
   const [runDialogOpen, setRunDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [branchFilter, setBranchFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const branches = useMemo(() => [...new Set(projectRuns.map(r => r.branch).filter(Boolean))].sort(), [projectRuns]);
+
+  const runs = useMemo(() => {
+    return projectRuns.filter(run => {
+      if (statusFilter !== 'all') {
+        const s = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+        if (s !== statusFilter) return false;
+      }
+      if (branchFilter && run.branch !== branchFilter) return false;
+      return true;
+    });
+  }, [projectRuns, statusFilter, branchFilter]);
 
   if (loading) {
     return <ProjectSkeleton />;
@@ -50,7 +69,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
     );
   }
 
-  const latestRun = runs[0];
+  const latestRun = projectRuns[0];
 
   return (
     <div className="space-y-6">
@@ -102,11 +121,69 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
       <ProjectTrendChart runs={runs} />
 
       <div>
-        <h3 className="text-lg font-semibold mb-4">Run History</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Run History</h3>
+          <button
+            onClick={() => setShowFilters(f => !f)}
+            className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (showFilters || statusFilter !== 'all' || branchFilter ? 'bg-accent/20 text-accent' : 'bg-card-border/50 text-muted hover:text-foreground')}
+          >
+            <Filter className="w-3.5 h-3.5" />
+            Filter
+            {(statusFilter !== 'all' || branchFilter) && (
+              <span className="ml-1 w-2 h-2 rounded-full bg-accent" />
+            )}
+          </button>
+        </div>
+
+        {showFilters && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-4 bg-card border border-card-border rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted">Filters</span>
+              {(statusFilter !== 'all' || branchFilter) && (
+                <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); }} className="text-xs text-accent hover:underline">Clear all</button>
+              )}
+            </div>
+            <div>
+              <label className="text-xs text-muted mb-1 block">Status</label>
+              <div className="flex gap-1.5">
+                {STATUS_OPTIONS.map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className={'px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (statusFilter === s ? 'bg-accent/20 border-accent/40 text-accent' : 'border-card-border text-muted hover:text-foreground')}
+                  >
+                    {s.charAt(0).toUpperCase() + s.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-muted mb-1 block">Branch</label>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+                <select
+                  value={branchFilter}
+                  onChange={e => setBranchFilter(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 bg-transparent border border-card-border rounded-lg text-sm focus:outline-none focus:border-accent/50"
+                >
+                  <option value="">All branches</option>
+                  {branches.map(b => <option key={b} value={b}>{b}</option>)}
+                </select>
+              </div>
+            </div>
+          </motion.div>
+        )}
         <div className="bg-card border border-card-border rounded-xl overflow-hidden divide-y divide-card-border">
           {runs.length === 0 && (
             <div className="px-5 py-8 text-center text-muted text-sm">
-              No test runs yet for this project.
+              {(statusFilter !== 'all' || branchFilter) ? (
+                <div className="space-y-2">
+                  <p>No runs match the current filters.</p>
+                  <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); }} className="text-accent hover:underline text-xs">Clear filters</button>
+                </div>
+              ) : (
+                <p>No test runs yet for this project.</p>
+              )}
             </div>
           )}
           {runs.map((run) => {
