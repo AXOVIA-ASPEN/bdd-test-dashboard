@@ -81,7 +81,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Link href={'/project/' + projectId + '/'} className="p-2 rounded-lg hover:bg-card-border/50 transition-colors">
+        <Link href={'/project/' + projectId + '/'} className="p-2 rounded-lg hover:bg-card-border/50 transition-colors" aria-label="Back to project">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>

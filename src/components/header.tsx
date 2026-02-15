@@ -23,7 +23,7 @@ export function Header() {
   const relTime = useRelativeTime(lastFetchedAt);
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">
+    <header role="navigation" aria-label="Main navigation" className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">

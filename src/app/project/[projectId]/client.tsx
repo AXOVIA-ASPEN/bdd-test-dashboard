@@ -75,7 +75,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors">
+          <Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors" aria-label="Back to dashboard">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
@@ -125,6 +125,8 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
           <h3 className="text-lg font-semibold">Run History</h3>
           <button
             onClick={() => setShowFilters(f => !f)}
+            aria-label="Toggle filters"
+            aria-expanded={showFilters}
             className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (showFilters || statusFilter !== 'all' || branchFilter ? 'bg-accent/20 text-accent' : 'bg-card-border/50 text-muted hover:text-foreground')}
           >
             <Filter className="w-3.5 h-3.5" />
