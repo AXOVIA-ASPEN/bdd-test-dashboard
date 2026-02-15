@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">92.59% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>24/24</span>
+                <span class='fraction'>25/27</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">76.92% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>10/13</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">90% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>17/17</span>
+                <span class='fraction'>18/20</span>
             </div>
         
             
@@ -180,7 +180,28 @@
 <a name='L115'></a><a href='#L115'>115</a>
 <a name='L116'></a><a href='#L116'>116</a>
 <a name='L117'></a><a href='#L117'>117</a>
-<a name='L118'></a><a href='#L118'>118</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -190,6 +211,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -247,6 +271,22 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -255,6 +295,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -298,13 +340,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
-import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
+import { RunTestsDialog } from '@/components/run-tests-dialog';
+import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, Play, RefreshCw } from 'lucide-react';
+import { ProjectTrendChart } from '@/components/project-trend-chart';
 &nbsp;
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s =&gt; s.getProject(projectId));
@@ -313,6 +357,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const loading = useDashboardStore(s =&gt; s.loading);
   const error = useDashboardStore(s =&gt; s.error);
   const retry = useDashboardStore(s =&gt; s.retry);
+  const [runDialogOpen, setRunDialogOpen] = useState(false);
 &nbsp;
   if (loading) {
     return &lt;ProjectSkeleton /&gt;;
@@ -322,12 +367,12 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
     return (
       &lt;div className="flex flex-col items-center justify-center py-20 gap-4"&gt;
         &lt;div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 max-w-md w-full text-center space-y-3"&gt;
-          &lt;AlertTriangle className="w-8 h-8 text-red-400 mx-auto" /&gt;
-          &lt;p className="text-lg font-semibold text-red-400"&gt;Failed to load data&lt;/p&gt;
+          &lt;AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400 mx-auto" /&gt;
+          &lt;p className="text-lg font-semibold text-red-600 dark:text-red-400"&gt;Failed to load data&lt;/p&gt;
           &lt;p className="text-sm text-muted"&gt;{error}&lt;/p&gt;
           &lt;button
             onClick={retry}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-lg transition-colors text-sm font-medium"
           &gt;
             &lt;RefreshCw className="w-4 h-4" /&gt;
             Retry
@@ -350,26 +395,42 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
 &nbsp;
   return (
     &lt;div className="space-y-6"&gt;
-      &lt;div className="flex items-center gap-3"&gt;
-        &lt;Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors"&gt;
-          &lt;ArrowLeft className="w-5 h-5" /&gt;
-        &lt;/Link&gt;
-        &lt;div&gt;
-          &lt;div className="flex items-center gap-2"&gt;
-            &lt;div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} /&gt;
-            &lt;h2 className="text-2xl font-bold"&gt;{project.name}&lt;/h2&gt;
+      &lt;div className="flex items-center justify-between"&gt;
+        &lt;div className="flex items-center gap-3"&gt;
+          &lt;Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors"&gt;
+            &lt;ArrowLeft className="w-5 h-5" /&gt;
+          &lt;/Link&gt;
+          &lt;div&gt;
+            &lt;div className="flex items-center gap-2"&gt;
+              &lt;div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} /&gt;
+              &lt;h2 className="text-2xl font-bold"&gt;{project.name}&lt;/h2&gt;
+            &lt;/div&gt;
+            &lt;p className="text-sm text-muted"&gt;{project.description}&lt;/p&gt;
           &lt;/div&gt;
-          &lt;p className="text-sm text-muted"&gt;{project.description}&lt;/p&gt;
         &lt;/div&gt;
+        &lt;button
+          onClick={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etRunDialogOpen(true)}</span>
+          className="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg transition-colors text-sm font-medium"
+        &gt;
+          &lt;Play className="w-4 h-4" /&gt;
+          Run Tests
+        &lt;/button&gt;
       &lt;/div&gt;
+&nbsp;
+      &lt;RunTestsDialog
+        project={project}
+        open={runDialogOpen}
+        onClose={<span class="fstat-no" title="function not covered" >() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etRunDialogOpen(false)}</span>
+        onTriggered={<span class="fstat-no" title="function not covered" >() =&gt; {</span>}}
+      /&gt;
 &nbsp;
       {latestRun &amp;&amp; (
         &lt;motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4"&gt;
           {[
             { label: 'Total', value: latestRun.summary?.total ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-accent' },
-            { label: 'Passed', value: latestRun.summary?.passed ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-emerald-400' },
-            { label: 'Failed', value: latestRun.summary?.failed ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-red-400' },
-            { label: 'Skipped', value: latestRun.summary?.skipped ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-yellow-400' },
+            { label: 'Passed', value: latestRun.summary?.passed ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Failed', value: latestRun.summary?.failed ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-red-600 dark:text-red-400' },
+            { label: 'Skipped', value: latestRun.summary?.skipped ?? <span class="branch-1 cbranch-no" title="branch not covered" >0, c</span>olor: 'text-yellow-600 dark:text-yellow-400' },
           ].map(c =&gt; (
             &lt;div key={c.label} className="bg-card border border-card-border rounded-xl p-4 text-center"&gt;
               &lt;p className="text-sm text-muted"&gt;{c.label}&lt;/p&gt;
@@ -378,6 +439,8 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
           ))}
         &lt;/motion.div&gt;
       )}
+&nbsp;
+      &lt;ProjectTrendChart runs={runs} /&gt;
 &nbsp;
       &lt;div&gt;
         &lt;h3 className="text-lg font-semibold mb-4"&gt;Run History&lt;/h3&gt;
@@ -421,7 +484,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-02-15T08:09:29.936Z
+                at 2026-02-15T12:09:55.773Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
