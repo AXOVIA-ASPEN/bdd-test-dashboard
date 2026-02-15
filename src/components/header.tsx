@@ -1,11 +1,27 @@
 'use client';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-import { Moon, Sun, FlaskConical } from 'lucide-react';
+import { Moon, Sun, FlaskConical, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useMemo } from 'react';
+
+function useRelativeTime(iso: string | null) {
+  return useMemo(() => {
+    if (!iso) return null;
+    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (diff < 10) return 'Just now';
+    if (diff < 60) return `${diff}s ago`;
+    const mins = Math.floor(diff / 60);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    return `${hrs}h ago`;
+  }, [iso]);
+}
 
 export function Header() {
-  const { theme, toggleTheme } = useDashboardStore();
+  const { theme, toggleTheme, loading, retry, lastFetchedAt } = useDashboardStore();
+  const relTime = useRelativeTime(lastFetchedAt);
+
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -18,14 +34,28 @@ export function Header() {
             <p className="text-xs text-muted -mt-0.5">Acceptance Test Dashboard</p>
           </div>
         </Link>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-card-border/50 transition-colors"
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </motion.button>
+        <div className="flex items-center gap-2">
+          {relTime && (
+            <span className="text-xs text-muted hidden sm:inline">Updated {relTime}</span>
+          )}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => { if (!loading) retry(); }}
+            disabled={loading}
+            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors disabled:opacity-50"
+            aria-label="Refresh data"
+          >
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleTheme}
+            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </motion.button>
+        </div>
       </div>
     </header>
   );

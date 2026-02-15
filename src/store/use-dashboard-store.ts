@@ -60,12 +60,14 @@ interface DashboardState {
   runs: TestRun[];
   loading: boolean;
   error: string | null;
+  lastFetchedAt: string | null;
   theme: Theme;
   toggleTheme: () => void;
   setProjects: (projects: Project[]) => void;
   setRuns: (runs: TestRun[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setLastFetchedAt: (ts: string | null) => void;
   retryCount: number;
   retry: () => void;
   getProject: (id: string) => Project | undefined;
@@ -79,12 +81,14 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   runs: [],
   loading: true,
   error: null,
+  lastFetchedAt: null,
   theme: 'dark',
   toggleTheme: () => set(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
   setProjects: (projects) => set({ projects }),
   setRuns: (runs) => set({ runs }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
+  setLastFetchedAt: (ts) => set({ lastFetchedAt: ts }),
   retryCount: 0,
   retry: () => set(s => ({ retryCount: s.retryCount + 1, error: null, loading: true })),
   getProject: (id) => get().projects.find(p => p.id === id),

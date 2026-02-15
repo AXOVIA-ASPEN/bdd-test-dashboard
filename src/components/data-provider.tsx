@@ -64,6 +64,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         useDashboardStore.getState().setError(message);
       } finally {
         useDashboardStore.getState().setLoading(false);
+        useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
       }
     }
     loadData();
