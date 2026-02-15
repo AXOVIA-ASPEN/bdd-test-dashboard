@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { cn, formatDuration, formatDate, formatTime, statusColor, statusBg } from './utils';
+import { describe, it, expect, vi } from 'vitest';
+import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg } from './utils';
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -31,6 +31,31 @@ describe('formatDuration', () => {
   });
   it('handles exactly 60 seconds', () => {
     expect(formatDuration(60000)).toBe('1m 0s');
+  });
+});
+
+describe('formatRelativeTime', () => {
+  it('returns "just now" for < 60 seconds ago', () => {
+    const now = new Date();
+    expect(formatRelativeTime(now.toISOString())).toBe('just now');
+  });
+  it('returns minutes ago', () => {
+    const d = new Date(Date.now() - 5 * 60 * 1000);
+    expect(formatRelativeTime(d.toISOString())).toBe('5m ago');
+  });
+  it('returns hours ago', () => {
+    const d = new Date(Date.now() - 3 * 60 * 60 * 1000);
+    expect(formatRelativeTime(d.toISOString())).toBe('3h ago');
+  });
+  it('returns days ago', () => {
+    const d = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+    expect(formatRelativeTime(d.toISOString())).toBe('5d ago');
+  });
+  it('returns formatted date for 30+ days', () => {
+    const d = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
+    const result = formatRelativeTime(d.toISOString());
+    // Should fall through to formatDate
+    expect(result).toMatch(/\w+ \d+, \d{4}/);
   });
 });
 

@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
@@ -7,7 +8,8 @@ import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, RefreshCw } from 'luci
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
-  const runs = useDashboardStore(s => s.runs.filter(r => r.projectId === projectId));
+  const allRuns = useDashboardStore(s => s.runs);
+  const runs = useMemo(() => allRuns.filter(r => r.projectId === projectId), [allRuns, projectId]);
   const loading = useDashboardStore(s => s.loading);
   const error = useDashboardStore(s => s.error);
   const retry = useDashboardStore(s => s.retry);

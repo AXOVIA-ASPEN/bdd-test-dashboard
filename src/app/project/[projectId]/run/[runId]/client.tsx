@@ -2,11 +2,31 @@
 import { useState, useEffect } from 'react';
 import { useDashboardStore, type TestRun, type Feature } from '@/store/use-dashboard-store';
 import { getDb } from '@/lib/firebase';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, Timestamp } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { ArrowLeft, Clock, GitBranch, Loader2 } from 'lucide-react';
+
+/** Convert Firestore Timestamps to ISO strings recursively */
+function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v instanceof Timestamp) {
+      out[k] = v.toDate().toISOString();
+    } else if (v && typeof v === 'object' && !Array.isArray(v)) {
+      out[k] = sanitize(v as Record<string, unknown>);
+    } else if (Array.isArray(v)) {
+      out[k] = v.map(item =>
+        item instanceof Timestamp ? item.toDate().toISOString() :
+        item && typeof item === 'object' ? sanitize(item as Record<string, unknown>) : item
+      );
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
 
 function StepError({ error }: { error: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -37,8 +57,8 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
         const runDoc = await getDoc(doc(db, 'runs', runId));
         if (!runDoc.exists()) { setLoadingRun(false); return; }
         const featuresSnap = await getDocs(collection(db, 'runs', runId, 'features'));
-        const features = featuresSnap.docs.map(d => ({ id: d.id, ...d.data() })) as Feature[];
-        setRun({ id: runDoc.id, ...runDoc.data(), features } as TestRun);
+        const features = featuresSnap.docs.map(d => ({ id: d.id, ...sanitize(d.data()) })) as Feature[];
+        setRun({ id: runDoc.id, ...sanitize(runDoc.data()), features } as TestRun);
       } catch (err) {
         console.error('Failed to load run:', err);
       } finally {

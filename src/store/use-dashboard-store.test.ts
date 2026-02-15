@@ -133,6 +133,19 @@ describe('useDashboardStore', () => {
       expect(summary.passRate).toBe(0);
       expect(summary.total).toBe(0);
     });
+
+    it('handles runs with missing summary fields', () => {
+      const runsNoSummary: TestRun[] = [
+        { id: 'r1', projectId: 'p1', timestamp: new Date().toISOString(), branch: 'main', duration: 1000 } as TestRun,
+        { id: 'r2', projectId: 'p2', timestamp: new Date().toISOString(), branch: 'main', duration: 1000, summary: {} as any } as TestRun,
+      ];
+      useDashboardStore.setState({ projects: mockProjects, runs: runsNoSummary });
+      const summary = useDashboardStore.getState().getGlobalSummary();
+      expect(summary.passed).toBe(0);
+      expect(summary.failed).toBe(0);
+      expect(summary.total).toBe(0);
+      expect(summary.passRate).toBe(0);
+    });
   });
 
   describe('getTrendData', () => {
