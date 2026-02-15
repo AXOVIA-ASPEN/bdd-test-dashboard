@@ -8,6 +8,23 @@ import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@
 import Link from 'next/link';
 import { ArrowLeft, Clock, GitBranch, Loader2 } from 'lucide-react';
 
+function StepError({ error }: { error: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const lines = error.split('\n');
+  const truncated = lines.length > 3 && !expanded;
+  const display = truncated ? lines.slice(0, 3).join('\n') : error;
+  return (
+    <div className="mt-1 ml-14 text-xs text-red-400/80 font-mono whitespace-pre-wrap bg-red-500/5 rounded p-2 max-h-48 overflow-auto">
+      {display}
+      {lines.length > 3 && (
+        <button onClick={() => setExpanded(!expanded)} className="block mt-1 text-red-400 underline cursor-pointer">
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function RunClient({ projectId, runId }: { projectId: string; runId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
   const [run, setRun] = useState<TestRun | null>(null);
@@ -88,10 +105,15 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
                   </div>
                   <div className="space-y-1">
                     {(scenario.steps || []).map((step, si2) => (
-                      <div key={si2} className="flex items-start gap-2 text-xs">
-                        <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
-                        <span className={statusColor(step.status)}>{step.text}</span>
-                        <span className="text-muted ml-auto shrink-0">{step.duration}ms</span>
+                      <div key={si2} className="text-xs">
+                        <div className="flex items-start gap-2">
+                          <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
+                          <span className={statusColor(step.status)}>{step.text}</span>
+                          <span className="text-muted ml-auto shrink-0">{step.duration}ms</span>
+                        </div>
+                        {step.status === 'failed' && (step.error || step.errorMessage) && (
+                          <StepError error={(step.error || step.errorMessage)!} />
+                        )}
                       </div>
                     ))}
                   </div>

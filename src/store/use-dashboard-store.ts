@@ -9,6 +9,7 @@ export interface Step {
   status: StepStatus;
   duration: number;
   error?: string;
+  errorMessage?: string;
 }
 
 export interface Scenario {
