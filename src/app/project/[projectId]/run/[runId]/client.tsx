@@ -116,7 +116,38 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
         run.features.map((feature, fi) => (
           <motion.div key={feature.id || fi} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-card-border rounded-xl p-5">
             <h3 className="font-semibold text-lg mb-1">{feature.name}</h3>
-            <p className="text-sm text-muted mb-4">{feature.description}</p>
+            <p className="text-sm text-muted mb-2">{feature.description}</p>
+            {(() => {
+              const counts = (feature.scenarios || []).reduce(
+                (acc, s) => ({ ...acc, [s.status]: (acc[s.status] || 0) + 1 }),
+                { passed: 0, failed: 0, skipped: 0 } as Record<string, number>
+              );
+              const total = (feature.scenarios || []).length;
+              const passRate = total > 0 ? Math.round((counts.passed / total) * 100) : 0;
+              return (
+                <div className="flex items-center gap-3 text-xs mb-4 flex-wrap">
+                  {counts.passed > 0 && (
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">✅ {counts.passed} passed</span>
+                  )}
+                  {counts.failed > 0 && (
+                    <span className="text-red-600 dark:text-red-400 font-medium">❌ {counts.failed} failed</span>
+                  )}
+                  {counts.skipped > 0 && (
+                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">⏭ {counts.skipped} skipped</span>
+                  )}
+                  {total > 0 && (
+                    <div className="flex items-center gap-2 ml-auto">
+                      <span className="text-muted">{passRate}%</span>
+                      <div className="w-20 h-1.5 bg-card-border rounded-full overflow-hidden flex">
+                        {counts.passed > 0 && <div className="h-full bg-emerald-500" style={{ width: `${(counts.passed / total) * 100}%` }} />}
+                        {counts.failed > 0 && <div className="h-full bg-red-500" style={{ width: `${(counts.failed / total) * 100}%` }} />}
+                        {counts.skipped > 0 && <div className="h-full bg-yellow-500" style={{ width: `${(counts.skipped / total) * 100}%` }} />}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             <div className="space-y-3">
               {(feature.scenarios || []).map((scenario, si) => (
                 <div key={si} className="border border-card-border rounded-lg p-3">
