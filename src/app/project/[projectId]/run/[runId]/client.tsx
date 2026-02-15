@@ -46,10 +46,13 @@ function StepError({ error }: { error: string }) {
   );
 }
 
+type StatusFilter = 'all' | 'passed' | 'failed' | 'skipped';
+
 export default function RunClient({ projectId, runId }: { projectId: string; runId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
   const [run, setRun] = useState<TestRun | null>(null);
   const [loadingRun, setLoadingRun] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   useEffect(() => {
     async function loadRunDetail() {
@@ -112,8 +115,41 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
         ))}
       </motion.div>
 
-      {run.features && run.features.length > 0 ? (
-        run.features.map((feature, fi) => (
+      {run.features && run.features.length > 0 && (() => {
+        const scenarioCounts = { passed: 0, failed: 0, skipped: 0 };
+        for (const f of run.features) {
+          for (const s of f.scenarios || []) {
+            if (s.status in scenarioCounts) scenarioCounts[s.status as keyof typeof scenarioCounts]++;
+          }
+        }
+        const allCount = scenarioCounts.passed + scenarioCounts.failed + scenarioCounts.skipped;
+        const pills: { key: StatusFilter; label: string; count: number; color: string; activeBg: string }[] = [
+          { key: 'all', label: 'All', count: allCount, color: 'text-accent', activeBg: 'bg-accent/15 border-accent/40' },
+          { key: 'failed', label: 'Failed', count: scenarioCounts.failed, color: 'text-red-600 dark:text-red-400', activeBg: 'bg-red-500/15 border-red-500/40' },
+          { key: 'skipped', label: 'Skipped', count: scenarioCounts.skipped, color: 'text-yellow-600 dark:text-yellow-400', activeBg: 'bg-yellow-500/15 border-yellow-500/40' },
+          { key: 'passed', label: 'Passed', count: scenarioCounts.passed, color: 'text-emerald-600 dark:text-emerald-400', activeBg: 'bg-emerald-500/15 border-emerald-500/40' },
+        ];
+
+        const filteredFeatures = statusFilter === 'all' ? run.features : run.features
+          .map(f => ({ ...f, scenarios: (f.scenarios || []).filter(s => s.status === statusFilter) }))
+          .filter(f => f.scenarios.length > 0);
+
+        return (<>
+          <div className="flex items-center gap-2 flex-wrap">
+            {pills.map(p => (
+              <button
+                key={p.key}
+                onClick={() => setStatusFilter(p.key)}
+                className={
+                  'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium ' +
+                  (statusFilter === p.key ? p.activeBg + ' ' + p.color : 'border-card-border text-muted hover:border-muted')
+                }
+              >
+                {p.label} ({p.count})
+              </button>
+            ))}
+          </div>
+          {filteredFeatures.length > 0 ? filteredFeatures.map((feature, fi) => (
           <motion.div key={feature.id || fi} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-card-border rounded-xl p-5">
             <h3 className="font-semibold text-lg mb-1">{feature.name}</h3>
             <p className="text-sm text-muted mb-2">{feature.description}</p>
@@ -173,8 +209,15 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
               ))}
             </div>
           </motion.div>
-        ))
-      ) : (
+        )) : (
+            <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">
+              No {statusFilter !== 'all' ? statusFilter + ' ' : ''}scenarios found.
+            </div>
+          )}
+        </>);
+      })()}
+
+      {(!run.features || run.features.length === 0) && (
         <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">No detailed results for this run.</div>
       )}
     </div>

@@ -118,8 +118,9 @@ describe('ProjectClient', () => {
     render(<ProjectClient projectId="test" />);
     // Open filters
     fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
-    // Click "Failed" filter
-    fireEvent.click(screen.getByText('Failed'));
+    // Click "Failed" filter button (not the stat card label)
+    const failedButtons = screen.getAllByText('Failed');
+    fireEvent.click(failedButtons[failedButtons.length - 1]);
     // Only the failed run should appear (2/5)
     expect(screen.getByText('2/5')).toBeInTheDocument();
     expect(screen.queryByText('8/10')).not.toBeInTheDocument();
@@ -152,7 +153,8 @@ describe('ProjectClient', () => {
     render(<ProjectClient projectId="test" />);
     fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
     // Filter to "skipped" - our run has status "passed" so it won't match
-    fireEvent.click(screen.getByText('Skipped'));
+    const skippedButtons = screen.getAllByText('Skipped');
+    fireEvent.click(skippedButtons[skippedButtons.length - 1]);
     expect(screen.getByText('No runs match the current filters.')).toBeInTheDocument();
     // Clear filters
     fireEvent.click(screen.getByText('Clear filters'));
@@ -175,7 +177,8 @@ describe('ProjectClient', () => {
     ];
     render(<ProjectClient projectId="test" />);
     fireEvent.click(screen.getByRole('button', { name: /toggle filters/i }));
-    fireEvent.click(screen.getByText('Failed'));
+    const failedBtns = screen.getAllByText('Failed');
+    fireEvent.click(failedBtns[failedBtns.length - 1]);
     // "Clear all" link should appear
     fireEvent.click(screen.getByText('Clear all'));
     // Both runs should be visible now
@@ -188,7 +191,8 @@ describe('ProjectClient', () => {
     expect(screen.getByText('10')).toBeInTheDocument();
     expect(screen.getByText('Passed')).toBeInTheDocument();
     expect(screen.getByText('8')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument(); // Failed
+    // Failed and Skipped both show '1', so use getAllByText
+    expect(screen.getAllByText('1')).toHaveLength(2);
   });
 
   it('derives status from summary when status field absent', () => {
