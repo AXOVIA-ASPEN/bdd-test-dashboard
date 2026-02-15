@@ -19,6 +19,7 @@ vi.mock('@/components/summary-cards', () => ({ SummaryCards: () => <div data-tes
 vi.mock('@/components/trend-chart', () => ({ TrendChart: () => <div data-testid="trend-chart" /> }));
 vi.mock('@/components/project-cards', () => ({ ProjectCards: () => <div data-testid="project-cards" /> }));
 vi.mock('@/components/recent-runs', () => ({ RecentRuns: () => <div data-testid="recent-runs" /> }));
+vi.mock('@/components/dashboard-skeleton', () => ({ DashboardSkeleton: () => <div data-testid="dashboard-skeleton" /> }));
 
 describe('Home page', () => {
   beforeEach(() => {
@@ -28,10 +29,10 @@ describe('Home page', () => {
     mockStore.retry = vi.fn();
   });
 
-  it('shows loading state', () => {
+  it('shows loading skeleton', () => {
     mockStore.loading = true;
     render(<Home />);
-    expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-skeleton')).toBeInTheDocument();
   });
 
   it('shows error state with retry button', () => {

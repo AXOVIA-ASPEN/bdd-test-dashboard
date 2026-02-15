@@ -36,6 +36,8 @@ vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: React.PropsWithChildren<{ href: string }>) => <a href={href} {...props}>{children}</a>,
 }));
 
+vi.mock('@/components/project-skeleton', () => ({ ProjectSkeleton: () => <div data-testid="project-skeleton" /> }));
+
 describe('ProjectClient', () => {
   beforeEach(() => {
     mockState.loading = false;
@@ -45,10 +47,10 @@ describe('ProjectClient', () => {
     mockState.getProject = (id: string) => (id === 'test' ? mockProject : undefined);
   });
 
-  it('shows loading state', () => {
+  it('shows loading skeleton', () => {
     mockState.loading = true;
     render(<ProjectClient projectId="test" />);
-    expect(screen.getByText('Loading project...')).toBeInTheDocument();
+    expect(screen.getByTestId('project-skeleton')).toBeInTheDocument();
   });
 
   it('shows error state with retry', () => {

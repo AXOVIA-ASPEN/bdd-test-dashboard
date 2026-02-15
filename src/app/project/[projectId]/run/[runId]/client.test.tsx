@@ -43,6 +43,8 @@ vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: React.PropsWithChildren<{ href: string }>) => <a href={href} {...props}>{children}</a>,
 }));
 
+vi.mock('@/components/run-detail-skeleton', () => ({ RunDetailSkeleton: () => <div data-testid="run-detail-skeleton" /> }));
+
 describe('RunClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,7 +53,7 @@ describe('RunClient', () => {
   it('shows loading state initially then not found', async () => {
     mockGetDoc.mockResolvedValue({ exists: () => false });
     render(<RunClient projectId="test" runId="run1" />);
-    expect(screen.getByText('Loading run...')).toBeInTheDocument();
+    expect(screen.getByTestId('run-detail-skeleton')).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText('Run not found.')).toBeInTheDocument();
     });
