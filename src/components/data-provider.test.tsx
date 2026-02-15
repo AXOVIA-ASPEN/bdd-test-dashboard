@@ -92,6 +92,53 @@ describe('DataProvider', () => {
     });
   });
 
+  it('sanitizes Firestore Timestamps in nested objects and arrays', async () => {
+    const { Timestamp } = await import('firebase/firestore');
+    const ts = new Timestamp(1700000000, 0);
+
+    mockGetDocs
+      .mockResolvedValueOnce({
+        docs: [{
+          id: 'p1',
+          data: () => ({
+            name: 'Project 1',
+            createdAt: ts,
+            meta: { updatedAt: ts, info: 'plain' },
+            tags: [ts, 'smoke', { nestedTs: ts }],
+          }),
+        }],
+      })
+      .mockResolvedValueOnce({ docs: [] });
+
+    render(<DataProvider><span>Test</span></DataProvider>);
+
+    await waitFor(() => {
+      const state = useDashboardStore.getState();
+      expect(state.projects).toHaveLength(1);
+      const p = state.projects[0] as any;
+      // Timestamps should be converted to ISO strings
+      expect(typeof p.createdAt).toBe('string');
+      expect(typeof p.meta.updatedAt).toBe('string');
+      expect(p.meta.info).toBe('plain');
+      // Array items: Timestamp → string, plain string stays, nested obj sanitized
+      expect(typeof p.tags[0]).toBe('string');
+      expect(p.tags[1]).toBe('smoke');
+      expect(typeof p.tags[2].nestedTs).toBe('string');
+    });
+  });
+
+  it('handles non-Error thrown from Firestore', async () => {
+    mockGetDocs.mockRejectedValueOnce('string error');
+
+    render(<DataProvider><span>Test</span></DataProvider>);
+
+    await waitFor(() => {
+      const state = useDashboardStore.getState();
+      expect(state.error).toBe('Failed to load data from Firestore');
+      expect(state.loading).toBe(false);
+    });
+  });
+
   it('sets runs to empty if both queries fail', async () => {
     mockGetDocs
       .mockResolvedValueOnce({ docs: [] }) // projects

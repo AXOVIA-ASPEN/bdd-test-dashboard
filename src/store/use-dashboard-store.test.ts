@@ -163,6 +163,22 @@ describe('useDashboardStore', () => {
       expect(trend).toEqual([]);
     });
 
+    it('returns 0 passRate when runs have total=0', () => {
+      const runsWithZeroTotal: TestRun[] = [
+        {
+          id: 'rz', projectId: 'p1',
+          timestamp: new Date(now - 3600000).toISOString(),
+          branch: 'main', duration: 1000,
+          summary: { passed: 0, failed: 0, skipped: 0, total: 0 },
+        },
+      ];
+      useDashboardStore.setState({ runs: runsWithZeroTotal });
+      const trend = useDashboardStore.getState().getTrendData(7);
+      const todayEntry = trend.find(e => e.total === 0);
+      expect(todayEntry).toBeDefined();
+      expect(todayEntry!.passRate).toBe(0);
+    });
+
     it('each entry has date, passRate, total', () => {
       useDashboardStore.setState({ runs: mockRuns });
       const trend = useDashboardStore.getState().getTrendData(7);
