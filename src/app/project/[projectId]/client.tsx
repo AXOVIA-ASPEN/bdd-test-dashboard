@@ -4,6 +4,7 @@ import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
+import { ProjectSkeleton } from '@/components/project-skeleton';
 import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
@@ -15,12 +16,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const retry = useDashboardStore(s => s.retry);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 gap-3 text-muted">
-        <Loader2 className="w-5 h-5 animate-spin" />
-        Loading project...
-      </div>
-    );
+    return <ProjectSkeleton />;
   }
 
   if (error) {

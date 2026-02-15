@@ -6,6 +6,7 @@ import { doc, getDoc, collection, getDocs, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
+import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
 import { ArrowLeft, Clock, GitBranch, Loader2 } from 'lucide-react';
 
 /** Convert Firestore Timestamps to ISO strings recursively */
@@ -69,7 +70,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   }, [runId]);
 
   if (loadingRun) {
-    return (<div className="flex items-center justify-center py-20 gap-3 text-muted"><Loader2 className="w-5 h-5 animate-spin" />Loading run...</div>);
+    return <RunDetailSkeleton />;
   }
   if (!run) {
     return (<div className="text-center py-20 text-muted"><p>Run not found.</p><Link href={'/project/' + projectId + '/'} className="text-accent mt-2 inline-block">Back to project</Link></div>);

@@ -4,6 +4,7 @@ import { SummaryCards } from '@/components/summary-cards';
 import { TrendChart } from '@/components/trend-chart';
 import { ProjectCards } from '@/components/project-cards';
 import { RecentRuns } from '@/components/recent-runs';
+import { DashboardSkeleton } from '@/components/dashboard-skeleton';
 import { AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
 export default function Home() {
@@ -13,12 +14,7 @@ export default function Home() {
   const retry = useDashboardStore(s => s.retry);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20 gap-3 text-muted">
-        <Loader2 className="w-5 h-5 animate-spin" />
-        Loading dashboard...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {
