@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
 import { AlertTriangle, ArrowLeft, ChevronRight, Loader2, Play, RefreshCw } from 'lucide-react';
+import { ProjectTrendChart } from '@/components/project-trend-chart';
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
@@ -97,6 +98,8 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
           ))}
         </motion.div>
       )}
+
+      <ProjectTrendChart runs={runs} />
 
       <div>
         <h3 className="text-lg font-semibold mb-4">Run History</h3>
