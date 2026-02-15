@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { formatRelativeTime } from '@/lib/utils';
 
 export function ProjectCards() {
   const projects = useDashboardStore(s => s.projects);
@@ -47,9 +48,13 @@ export function ProjectCards() {
                       <span className="text-red-400">{latestRun.summary.failed} failed</span>
                       <span className="text-yellow-400">{latestRun.summary.skipped} skipped</span>
                     </div>
-                    <div className="mt-3 h-2 bg-card-border rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${rate}%` }} />
+                    <div className="mt-3 flex items-center gap-2">
+                      <div className="flex-1 h-2 bg-card-border rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${rate}%` }} />
+                      </div>
+                      <span className="text-xs font-medium text-muted">{rate}%</span>
                     </div>
+                    <p className="mt-2 text-xs text-muted">Last run: {formatRelativeTime(latestRun.timestamp)}</p>
                   </>
                 ) : (
                   <p className="text-xs text-muted">No runs yet</p>
