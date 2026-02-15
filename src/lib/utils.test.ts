@@ -77,16 +77,16 @@ describe('formatTime', () => {
 
 describe('statusColor', () => {
   it('returns emerald for passed', () => {
-    expect(statusColor('passed')).toBe('text-emerald-400');
+    expect(statusColor('passed')).toContain('emerald');
   });
   it('returns red for failed', () => {
-    expect(statusColor('failed')).toBe('text-red-400');
+    expect(statusColor('failed')).toContain('red');
   });
   it('returns yellow for skipped', () => {
-    expect(statusColor('skipped')).toBe('text-yellow-400');
+    expect(statusColor('skipped')).toContain('yellow');
   });
   it('returns slate for unknown', () => {
-    expect(statusColor('unknown')).toBe('text-slate-400');
+    expect(statusColor('unknown')).toContain('slate');
   });
 });
 

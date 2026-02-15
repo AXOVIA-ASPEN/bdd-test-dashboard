@@ -44,9 +44,9 @@ export function ProjectCards() {
                 {latestRun ? (
                   <>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-emerald-400">{latestRun.summary.passed} passed</span>
-                      <span className="text-red-400">{latestRun.summary.failed} failed</span>
-                      <span className="text-yellow-400">{latestRun.summary.skipped} skipped</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">{latestRun.summary.passed} passed</span>
+                      <span className="text-red-600 dark:text-red-400">{latestRun.summary.failed} failed</span>
+                      <span className="text-yellow-600 dark:text-yellow-400">{latestRun.summary.skipped} skipped</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
                       <div className="flex-1 h-2 bg-card-border rounded-full overflow-hidden">

@@ -6,9 +6,9 @@ import { Activity, CheckCircle2, XCircle, SkipForward } from 'lucide-react';
 
 const cardDefs = [
   { key: 'total' as const, label: 'Total Tests', icon: Activity, color: 'text-accent', suffix: '' },
-  { key: 'passRate' as const, label: 'Pass Rate', icon: CheckCircle2, color: 'text-emerald-400', suffix: '%' },
-  { key: 'failed' as const, label: 'Failures', icon: XCircle, color: 'text-red-400', suffix: '' },
-  { key: 'skipped' as const, label: 'Skipped', icon: SkipForward, color: 'text-yellow-400', suffix: '' },
+  { key: 'passRate' as const, label: 'Pass Rate', icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-400', suffix: '%' },
+  { key: 'failed' as const, label: 'Failures', icon: XCircle, color: 'text-red-600 dark:text-red-400', suffix: '' },
+  { key: 'skipped' as const, label: 'Skipped', icon: SkipForward, color: 'text-yellow-600 dark:text-yellow-400', suffix: '' },
 ];
 
 export function SummaryCards() {

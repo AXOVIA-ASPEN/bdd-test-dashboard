@@ -26,12 +26,12 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 max-w-md w-full text-center space-y-3">
-          <AlertTriangle className="w-8 h-8 text-red-400 mx-auto" />
-          <p className="text-lg font-semibold text-red-400">Failed to load data</p>
+          <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400 mx-auto" />
+          <p className="text-lg font-semibold text-red-600 dark:text-red-400">Failed to load data</p>
           <p className="text-sm text-muted">{error}</p>
           <button
             onClick={retry}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-lg transition-colors text-sm font-medium"
           >
             <RefreshCw className="w-4 h-4" />
             Retry
@@ -87,9 +87,9 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Total', value: latestRun.summary?.total ?? 0, color: 'text-accent' },
-            { label: 'Passed', value: latestRun.summary?.passed ?? 0, color: 'text-emerald-400' },
-            { label: 'Failed', value: latestRun.summary?.failed ?? 0, color: 'text-red-400' },
-            { label: 'Skipped', value: latestRun.summary?.skipped ?? 0, color: 'text-yellow-400' },
+            { label: 'Passed', value: latestRun.summary?.passed ?? 0, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Failed', value: latestRun.summary?.failed ?? 0, color: 'text-red-600 dark:text-red-400' },
+            { label: 'Skipped', value: latestRun.summary?.skipped ?? 0, color: 'text-yellow-600 dark:text-yellow-400' },
           ].map(c => (
             <div key={c.label} className="bg-card border border-card-border rounded-xl p-4 text-center">
               <p className="text-sm text-muted">{c.label}</p>

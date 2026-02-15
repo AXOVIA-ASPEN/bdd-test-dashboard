@@ -37,20 +37,20 @@ export function formatTime(iso: string): string {
 
 export function statusColor(status: string): string {
   switch (status) {
-    case 'passed': return 'text-emerald-400';
-    case 'failed': return 'text-red-400';
-    case 'skipped': return 'text-yellow-400';
-    default: return 'text-slate-400';
+    case 'passed': return 'text-emerald-600 dark:text-emerald-400';
+    case 'failed': return 'text-red-600 dark:text-red-400';
+    case 'skipped': return 'text-yellow-600 dark:text-yellow-400';
+    default: return 'text-slate-500 dark:text-slate-400';
   }
 }
 
 export function statusBg(status: string): string {
   switch (status) {
-    case 'passed': return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
-    case 'failed': return 'bg-red-500/15 text-red-400 border-red-500/30';
-    case 'skipped': return 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';
-    case 'pending': return 'bg-blue-500/15 text-blue-400 border-blue-500/30';
-    case 'running': return 'bg-blue-500/15 text-blue-400 border-blue-500/30';
-    default: return 'bg-slate-500/15 text-slate-400 border-slate-500/30';
+    case 'passed': return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30';
+    case 'failed': return 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/30';
+    case 'skipped': return 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-500/30';
+    case 'pending': return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30';
+    case 'running': return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30';
+    default: return 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-500/30';
   }
 }

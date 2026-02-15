@@ -35,10 +35,10 @@ function StepError({ error }: { error: string }) {
   const truncated = lines.length > 3 && !expanded;
   const display = truncated ? lines.slice(0, 3).join('\n') : error;
   return (
-    <div className="mt-1 ml-14 text-xs text-red-400/80 font-mono whitespace-pre-wrap bg-red-500/5 rounded p-2 max-h-48 overflow-auto">
+    <div className="mt-1 ml-14 text-xs text-red-600/80 dark:text-red-400/80 font-mono whitespace-pre-wrap bg-red-500/5 rounded p-2 max-h-48 overflow-auto">
       {display}
       {lines.length > 3 && (
-        <button onClick={() => setExpanded(!expanded)} className="block mt-1 text-red-400 underline cursor-pointer">
+        <button onClick={() => setExpanded(!expanded)} className="block mt-1 text-red-600 dark:text-red-400 underline cursor-pointer">
           {expanded ? 'Show less' : 'Show more'}
         </button>
       )}
@@ -101,9 +101,9 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total', value: run.summary?.total ?? 0, color: 'text-accent' },
-          { label: 'Passed', value: run.summary?.passed ?? 0, color: 'text-emerald-400' },
-          { label: 'Failed', value: run.summary?.failed ?? 0, color: 'text-red-400' },
-          { label: 'Skipped', value: run.summary?.skipped ?? 0, color: 'text-yellow-400' },
+          { label: 'Passed', value: run.summary?.passed ?? 0, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'Failed', value: run.summary?.failed ?? 0, color: 'text-red-600 dark:text-red-400' },
+          { label: 'Skipped', value: run.summary?.skipped ?? 0, color: 'text-yellow-600 dark:text-yellow-400' },
         ].map(c => (
           <div key={c.label} className="bg-card border border-card-border rounded-xl p-4 text-center">
             <p className="text-sm text-muted">{c.label}</p>
