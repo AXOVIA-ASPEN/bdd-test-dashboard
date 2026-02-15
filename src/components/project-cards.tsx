@@ -20,6 +20,19 @@ export function ProjectCards() {
           const rate = latestRun?.summary?.total
             ? Math.round((latestRun.summary.passed / latestRun.summary.total) * 100)
             : 0;
+
+          // Health badge logic
+          let healthBadge = { icon: '⏳', label: 'No runs', color: 'bg-gray-500/15 text-gray-500' };
+          if (latestRun) {
+            const { failed, skipped, passed, total } = latestRun.summary;
+            if (failed > 0) {
+              healthBadge = { icon: '❌', label: 'Failing', color: 'bg-red-500/15 text-red-600 dark:text-red-400' };
+            } else if (skipped > 0) {
+              healthBadge = { icon: '⚠️', label: 'Flaky', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' };
+            } else if (passed === total && total > 0) {
+              healthBadge = { icon: '✅', label: 'Passing', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' };
+            }
+          }
           return (
             <motion.div
               key={p.id}
@@ -36,6 +49,9 @@ export function ProjectCards() {
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: p.color }} />
                       <h4 className="font-semibold">{p.name}</h4>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${healthBadge.color}`}>
+                        <span>{healthBadge.icon}</span> {healthBadge.label}
+                      </span>
                     </div>
                     <p className="text-sm text-muted">{p.description}</p>
                   </div>
