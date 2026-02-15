@@ -18,7 +18,7 @@ function errorResponse(status: number, body?: object) {
 
 describe('API_URL', () => {
   it('has a default value', () => {
-    expect(API_URL).toBeTruthy();
+    expect(typeof API_URL).toBe('string');
   });
 });
 

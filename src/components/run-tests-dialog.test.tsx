@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { RunTestsDialog } from './run-tests-dialog';
 import type { Project } from '@/store/use-dashboard-store';
 
@@ -47,8 +47,8 @@ describe('RunTestsDialog', () => {
       <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
     );
     expect(screen.getByText(/Run Tests — Test Project/)).toBeInTheDocument();
-    expect(screen.getByText('Run Tests')).toBeInTheDocument();
-    expect(screen.getByText('Cancel')).toBeInTheDocument();
+    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+    expect(screen.getByText('Close')).toBeInTheDocument();
   });
 
   it('renders all project tags', () => {
@@ -93,11 +93,11 @@ describe('RunTestsDialog', () => {
     expect(screen.getByText('make test-bdd')).toBeInTheDocument();
   });
 
-  it('calls onClose when Cancel is clicked', () => {
+  it('calls onClose when Close is clicked', () => {
     render(
       <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
     );
-    fireEvent.click(screen.getByText('Cancel'));
+    fireEvent.click(screen.getByText('Close'));
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -120,40 +120,19 @@ describe('RunTestsDialog', () => {
     expect(screen.getByDisplayValue('develop')).toBeInTheDocument();
   });
 
-  it('submits successfully and calls onTriggered', async () => {
-    const { triggerRun } = await import('@/lib/api');
-    (triggerRun as any).mockResolvedValue({ runId: 'run-123' });
-
+  it('shows coming soon notice explaining remote execution is not available', () => {
     render(
       <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
     );
-    fireEvent.click(screen.getByText('Run Tests'));
-
-    await waitFor(() => {
-      expect(triggerRun).toHaveBeenCalledWith({
-        projectId: 'proj-1',
-        repo: 'org/test-repo',
-        tags: [],
-        branch: 'main',
-        makeTarget: 'test-bdd',
-      });
-      expect(onTriggered).toHaveBeenCalledWith('run-123');
-      expect(onClose).toHaveBeenCalled();
-    });
+    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
+    expect(screen.getByText(/Remote test execution requires/)).toBeInTheDocument();
   });
 
-  it('shows error on submit failure', async () => {
-    const { triggerRun } = await import('@/lib/api');
-    (triggerRun as any).mockRejectedValue(new Error('Network error'));
-
+  it('shows run locally command preview section', () => {
     render(
       <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
     );
-    fireEvent.click(screen.getByText('Run Tests'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Network error')).toBeInTheDocument();
-    });
+    expect(screen.getByText('Run locally')).toBeInTheDocument();
   });
 
   it('handles project with no tags', () => {
