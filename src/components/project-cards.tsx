@@ -4,6 +4,7 @@ import { useDashboardStore } from '@/store/use-dashboard-store';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
+import { Sparkline } from './sparkline';
 
 export function ProjectCards() {
   const projects = useDashboardStore(s => s.projects);
@@ -20,6 +21,13 @@ export function ProjectCards() {
           const rate = latestRun?.summary?.total
             ? Math.round((latestRun.summary.passed / latestRun.summary.total) * 100)
             : 0;
+
+          // Duration sparkline: last 10 runs for this project
+          const projectRuns = runs
+            .filter(r => r.projectId === p.id)
+            .slice(0, 10)
+            .reverse();
+          const durationData = projectRuns.map(r => r.duration);
 
           // Health badge logic
           let healthBadge = { icon: '⏳', label: 'No runs', color: 'bg-gray-500/15 text-gray-500' };
@@ -70,7 +78,15 @@ export function ProjectCards() {
                       </div>
                       <span className="text-xs font-medium text-muted">{rate}%</span>
                     </div>
-                    <p className="mt-2 text-xs text-muted">Last run: {formatRelativeTime(latestRun.timestamp)}</p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-xs text-muted">Last run: {formatRelativeTime(latestRun.timestamp)}</p>
+                      {durationData.length >= 2 && (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-muted">Duration</span>
+                          <Sparkline data={durationData} width={64} height={20} color={p.color || '#10b981'} />
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <p className="text-xs text-muted">No runs yet</p>
