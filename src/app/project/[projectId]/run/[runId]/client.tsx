@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { ArrowLeft, Clock, GitBranch, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Clock, GitBranch, Loader2, RotateCcw } from 'lucide-react';
 
 /** Convert Firestore Timestamps to ISO strings recursively */
 function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
@@ -52,28 +52,56 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const project = useDashboardStore(s => s.getProject(projectId));
   const [run, setRun] = useState<TestRun | null>(null);
   const [loadingRun, setLoadingRun] = useState(true);
+  const [errorRun, setErrorRun] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     async function loadRunDetail() {
+      setLoadingRun(true);
+      setErrorRun(null);
       try {
         const db = getDb();
         const runDoc = await getDoc(doc(db, 'runs', runId));
-        if (!runDoc.exists()) { setLoadingRun(false); return; }
+        if (!runDoc.exists()) { setRun(null); setLoadingRun(false); return; }
         const featuresSnap = await getDocs(collection(db, 'runs', runId, 'features'));
         const features = featuresSnap.docs.map(d => ({ id: d.id, ...sanitize(d.data()) })) as Feature[];
         setRun({ id: runDoc.id, ...sanitize(runDoc.data()), features } as TestRun);
       } catch (err) {
         console.error('Failed to load run:', err);
+        setErrorRun(err instanceof Error ? err.message : 'An unexpected error occurred while loading run details.');
       } finally {
         setLoadingRun(false);
       }
     }
     if (runId && runId !== '_') { loadRunDetail(); } else { setLoadingRun(false); }
-  }, [runId]);
+  }, [runId, retryCount]);
+
+  const handleRetry = () => setRetryCount(c => c + 1);
 
   if (loadingRun) {
     return <RunDetailSkeleton />;
+  }
+  if (errorRun) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 max-w-md w-full text-center space-y-3">
+          <AlertTriangle className="w-10 h-10 text-red-500 mx-auto" />
+          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">Failed to load run</h3>
+          <p className="text-sm text-muted">{errorRun}</p>
+          <button
+            onClick={handleRetry}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Retry
+          </button>
+        </div>
+        <Link href={'/project/' + projectId + '/'} className="text-accent text-sm hover:underline">
+          Back to project
+        </Link>
+      </div>
+    );
   }
   if (!run) {
     return (<div className="text-center py-20 text-muted"><p>Run not found.</p><Link href={'/project/' + projectId + '/'} className="text-accent mt-2 inline-block">Back to project</Link></div>);
