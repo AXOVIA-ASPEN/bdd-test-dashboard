@@ -6,7 +6,8 @@ import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { AlertTriangle, ChevronRight, Filter, Loader2, Play, RefreshCw, Search, X } from 'lucide-react';
+import { ChevronRight, Filter, Play, Search } from 'lucide-react';
+import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
 
@@ -48,22 +49,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   }
 
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-6 max-w-md w-full text-center space-y-3">
-          <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400 mx-auto" />
-          <p className="text-lg font-semibold text-red-600 dark:text-red-400">Failed to load data</p>
-          <p className="text-sm text-muted">{error}</p>
-          <button
-            onClick={retry}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-lg transition-colors text-sm font-medium"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+    return <ErrorState message={error} onRetry={retry} />;
   }
 
   if (!project) {
