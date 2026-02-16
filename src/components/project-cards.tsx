@@ -69,7 +69,7 @@ export function ProjectCards() {
           // Health badge logic
           let healthBadge = { icon: '⏳', label: 'No runs', color: 'bg-gray-500/15 text-gray-500' };
           if (latestRun) {
-            const { failed, skipped, passed, total } = latestRun.summary;
+            const { failed = 0, skipped = 0, passed = 0, total = 0 } = latestRun.summary ?? {};
             if (failed > 0) {
               healthBadge = { icon: '❌', label: 'Failing', color: 'bg-red-500/15 text-red-600 dark:text-red-400' };
             } else if (skipped > 0) {
@@ -105,9 +105,9 @@ export function ProjectCards() {
                 {latestRun ? (
                   <>
                     <div className="flex items-center gap-4 text-sm">
-                      <span className="text-emerald-600 dark:text-emerald-400">{latestRun.summary.passed} passed</span>
-                      <span className="text-red-600 dark:text-red-400">{latestRun.summary.failed} failed</span>
-                      <span className="text-yellow-600 dark:text-yellow-400">{latestRun.summary.skipped} skipped</span>
+                      <span className="text-emerald-600 dark:text-emerald-400">{latestRun.summary?.passed ?? 0} passed</span>
+                      <span className="text-red-600 dark:text-red-400">{latestRun.summary?.failed ?? 0} failed</span>
+                      <span className="text-yellow-600 dark:text-yellow-400">{latestRun.summary?.skipped ?? 0} skipped</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
                       <div className="flex-1 h-2 bg-card-border rounded-full overflow-hidden">
