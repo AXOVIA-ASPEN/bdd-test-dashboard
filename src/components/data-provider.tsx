@@ -1,29 +1,10 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { getDb } from '@/lib/firebase';
-import { collection, query, orderBy, limit, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import type { Project, TestRun } from '@/store/use-dashboard-store';
-
-/** Convert Firestore Timestamps to ISO strings recursively */
-function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v instanceof Timestamp) {
-      out[k] = v.toDate().toISOString();
-    } else if (v && typeof v === 'object' && !Array.isArray(v)) {
-      out[k] = sanitize(v as Record<string, unknown>);
-    } else if (Array.isArray(v)) {
-      out[k] = v.map(item =>
-        item instanceof Timestamp ? item.toDate().toISOString() :
-        item && typeof item === 'object' ? sanitize(item as Record<string, unknown>) : item
-      );
-    } else {
-      out[k] = v;
-    }
-  }
-  return out;
-}
+import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const initialLoad = useRef(true);

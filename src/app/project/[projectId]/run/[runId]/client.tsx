@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useDashboardStore, type TestRun, type Feature } from '@/store/use-dashboard-store';
 import { getDb } from '@/lib/firebase';
-import { doc, getDoc, collection, getDocs, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
@@ -10,26 +10,7 @@ import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
 import { AlertTriangle, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
-
-/** Convert Firestore Timestamps to ISO strings recursively */
-function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v instanceof Timestamp) {
-      out[k] = v.toDate().toISOString();
-    } else if (v && typeof v === 'object' && !Array.isArray(v)) {
-      out[k] = sanitize(v as Record<string, unknown>);
-    } else if (Array.isArray(v)) {
-      out[k] = v.map(item =>
-        item instanceof Timestamp ? item.toDate().toISOString() :
-        item && typeof item === 'object' ? sanitize(item as Record<string, unknown>) : item
-      );
-    } else {
-      out[k] = v;
-    }
-  }
-  return out;
-}
+import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
 
 function StepError({ error }: { error: string }) {
   const [expanded, setExpanded] = useState(false);
