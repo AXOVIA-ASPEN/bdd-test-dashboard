@@ -225,7 +225,9 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
                         <div className="flex items-start gap-2">
                           <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
                           <span className={statusColor(step.status)}>{step.text}</span>
-                          <span className="text-muted ml-auto shrink-0">{step.duration}ms</span>
+                          {step.duration != null && step.duration > 0 && (
+                            <span className="text-muted ml-auto shrink-0">{formatDuration(step.duration)}</span>
+                          )}
                         </div>
                         {step.status === 'failed' && (step.error || step.errorMessage) && (
                           <StepError error={(step.error || step.errorMessage)!} />
