@@ -15,8 +15,8 @@ test.describe('Run Detail Page - View individual test run results', () => {
     await expect(projectLink).toBeVisible({ timeout: 10000 });
     await projectLink.click();
 
-    // Then: wait for project page to load
-    await expect(page.locator('a[href="/"], [aria-label*="Back"], [aria-label*="back"]')).toBeVisible({ timeout: 15000 });
+    // Then: wait for project page to load (back to dashboard link visible)
+    await expect(page.getByRole('link', { name: 'Back to dashboard' })).toBeVisible({ timeout: 15000 });
 
     // Check if there are run links on the project page
     const runLink = page.locator('a[href*="/run/"]').first();
@@ -47,7 +47,7 @@ test.describe('Run Detail Page - View individual test run results', () => {
     const projectLink = page.locator('a[href*="/project/"]').first();
     await expect(projectLink).toBeVisible({ timeout: 10000 });
     await projectLink.click();
-    await expect(page.locator('a[href="/"], [aria-label*="Back"], [aria-label*="back"]')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('link', { name: 'Back to dashboard' })).toBeVisible({ timeout: 15000 });
 
     // Check for runs
     const runLink = page.locator('a[href*="/run/"]').first();
