@@ -99,7 +99,7 @@ describe('RunClient', () => {
     render(<RunClient projectId="test" runId="run1" />);
 
     await waitFor(() => {
-      expect(screen.getByText('Test Project')).toBeInTheDocument();
+      expect(screen.getAllByText('Test Project').length).toBeGreaterThanOrEqual(1);
     });
     expect(screen.getAllByText('passed').length).toBeGreaterThan(0);
     expect(screen.getByText('Login Feature')).toBeInTheDocument();

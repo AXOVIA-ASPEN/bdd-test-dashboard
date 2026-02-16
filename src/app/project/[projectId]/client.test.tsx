@@ -71,7 +71,7 @@ describe('ProjectClient', () => {
 
   it('renders project details and run history', () => {
     render(<ProjectClient projectId="test" />);
-    expect(screen.getByText('Test Project')).toBeInTheDocument();
+    expect(screen.getAllByText('Test Project').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('A test')).toBeInTheDocument();
     expect(screen.getByText('Run History')).toBeInTheDocument();
     expect(screen.getByText('8/10')).toBeInTheDocument();
