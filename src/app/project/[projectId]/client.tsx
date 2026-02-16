@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
@@ -23,6 +23,11 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [branchFilter, setBranchFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    document.title = project ? `${project.name} | BDD Dashboard` : 'BDD Dashboard';
+    return () => { document.title = 'Silverline | Acceptance Test Dashboard'; };
+  }, [project]);
 
   const branches = useMemo(() => [...new Set(projectRuns.map(r => r.branch).filter(Boolean))].sort(), [projectRuns]);
 

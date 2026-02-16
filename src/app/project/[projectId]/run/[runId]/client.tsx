@@ -212,6 +212,16 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    if (run && project) {
+      const runDate = run.timestamp ? new Date(run.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Run';
+      document.title = `Run ${runDate} - ${project.name} | BDD Dashboard`;
+    } else if (project) {
+      document.title = `${project.name} | BDD Dashboard`;
+    }
+    return () => { document.title = 'Silverline | Acceptance Test Dashboard'; };
+  }, [run, project]);
+
+  useEffect(() => {
     async function loadRunDetail() {
       setLoadingRun(true);
       setErrorRun(null);
