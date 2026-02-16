@@ -6,8 +6,9 @@ import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { AlertTriangle, ArrowLeft, ChevronRight, Filter, Loader2, Play, RefreshCw, Search, X } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Filter, Loader2, Play, RefreshCw, Search, X } from 'lucide-react';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
+import { Breadcrumb } from '@/components/breadcrumb';
 
 const STATUS_OPTIONS = ['all', 'passed', 'failed', 'skipped'] as const;
 type StatusFilter = (typeof STATUS_OPTIONS)[number];
@@ -78,11 +79,10 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
 
   return (
     <div className="space-y-6">
+      <Breadcrumb items={[{ label: project.name }]} />
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Link href="/" className="p-2 rounded-lg hover:bg-card-border/50 transition-colors" aria-label="Back to dashboard">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
           <div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} />

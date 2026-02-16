@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 
 /** Convert Firestore Timestamps to ISO strings recursively */
@@ -276,10 +277,14 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
 
   return (
     <div className="space-y-6">
+      <Breadcrumb
+        items={[
+          { label: project?.name || projectId, href: '/project/' + projectId + '/' },
+          { label: run.timestamp ? 'Run ' + new Date(run.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Run Details' },
+        ]}
+      />
+
       <div className="flex items-center gap-3">
-        <Link href={'/project/' + projectId + '/'} className="p-2 rounded-lg hover:bg-card-border/50 transition-colors" aria-label="Back to project">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
         <div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project?.color }} />
