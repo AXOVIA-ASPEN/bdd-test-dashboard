@@ -5,10 +5,11 @@ import { RecentRuns } from './recent-runs';
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => {
-      const { initial, animate, transition, whileTap, whileHover, ...rest } = props;
+      const { initial, animate, transition, whileTap, whileHover, exit, ...rest } = props;
       return <div {...rest}>{children}</div>;
     },
   },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
 vi.mock('next/link', () => ({
@@ -28,6 +29,7 @@ vi.mock('@/store/use-dashboard-store', () => ({
 
 describe('RecentRuns', () => {
   beforeEach(() => {
+    mockStore.loading = false;
     mockStore.projects = [];
     mockStore.runs = [];
   });
