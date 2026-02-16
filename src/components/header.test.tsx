@@ -90,6 +90,27 @@ describe('Header', () => {
     expect(screen.queryByText(/Updated/)).toBeNull();
   });
 
+  it('shows seconds ago when diff is between 10-59s', () => {
+    const thirtySecsAgo = new Date(Date.now() - 30_000).toISOString();
+    useDashboardStore.setState({ lastFetchedAt: thirtySecsAgo });
+    render(<Header />);
+    expect(screen.getByText(/Updated 30s ago/)).toBeTruthy();
+  });
+
+  it('shows minutes ago when diff is between 1-59min', () => {
+    const fiveMinsAgo = new Date(Date.now() - 5 * 60_000).toISOString();
+    useDashboardStore.setState({ lastFetchedAt: fiveMinsAgo });
+    render(<Header />);
+    expect(screen.getByText(/Updated 5m ago/)).toBeTruthy();
+  });
+
+  it('shows hours ago when diff is 60+ minutes', () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 3600_000).toISOString();
+    useDashboardStore.setState({ lastFetchedAt: twoHoursAgo });
+    render(<Header />);
+    expect(screen.getByText(/Updated 2h ago/)).toBeTruthy();
+  });
+
   it('links to home page', () => {
     render(<Header />);
     const link = screen.getByText('Silverline').closest('a');

@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ArrowLeft, Clock, GitBranch, Loader2, RotateCcw } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
 /** Convert Firestore Timestamps to ISO strings recursively */
 function sanitize(obj: Record<string, unknown>): Record<string, unknown> {
@@ -47,6 +48,160 @@ function StepError({ error }: { error: string }) {
 }
 
 type StatusFilter = 'all' | 'passed' | 'failed' | 'skipped';
+
+function FeatureSections({ features, statusFilter, setStatusFilter }: { features?: Feature[]; statusFilter: StatusFilter; setStatusFilter: (f: StatusFilter) => void }) {
+  // Determine which features have failures for auto-expand
+  const featureHasFailure = (f: Feature) => (f.scenarios || []).some(s => s.status === 'failed');
+
+  // Initialize expanded state: failed features expanded, others collapsed
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(() => {
+    const map: Record<string, boolean> = {};
+    (features || []).forEach((f, i) => {
+      map[f.id || String(i)] = featureHasFailure(f);
+    });
+    return map;
+  });
+
+  if (!features || features.length === 0) return null;
+
+  const toggleFeature = (key: string) => setExpandedMap(prev => ({ ...prev, [key]: !prev[key] }));
+  const allExpanded = features.every((f, i) => expandedMap[f.id || String(i)]);
+  const toggleAll = () => {
+    const newVal = !allExpanded;
+    const map: Record<string, boolean> = {};
+    features.forEach((f, i) => { map[f.id || String(i)] = newVal; });
+    setExpandedMap(map);
+  };
+
+  const scenarioCounts = { passed: 0, failed: 0, skipped: 0 };
+  for (const f of features) {
+    for (const s of f.scenarios || []) {
+      if (s.status in scenarioCounts) scenarioCounts[s.status as keyof typeof scenarioCounts]++;
+    }
+  }
+  const allCount = scenarioCounts.passed + scenarioCounts.failed + scenarioCounts.skipped;
+  const pills: { key: StatusFilter; label: string; count: number; color: string; activeBg: string }[] = [
+    { key: 'all', label: 'All', count: allCount, color: 'text-accent', activeBg: 'bg-accent/15 border-accent/40' },
+    { key: 'failed', label: 'Failed', count: scenarioCounts.failed, color: 'text-red-600 dark:text-red-400', activeBg: 'bg-red-500/15 border-red-500/40' },
+    { key: 'skipped', label: 'Skipped', count: scenarioCounts.skipped, color: 'text-yellow-600 dark:text-yellow-400', activeBg: 'bg-yellow-500/15 border-yellow-500/40' },
+    { key: 'passed', label: 'Passed', count: scenarioCounts.passed, color: 'text-emerald-600 dark:text-emerald-400', activeBg: 'bg-emerald-500/15 border-emerald-500/40' },
+  ];
+
+  const filteredFeatures = statusFilter === 'all' ? features : features
+    .map(f => ({ ...f, scenarios: (f.scenarios || []).filter(s => s.status === statusFilter) }))
+    .filter(f => f.scenarios.length > 0);
+
+  return (<>
+    <div className="flex items-center gap-2 flex-wrap">
+      {pills.map(p => (
+        <button
+          key={p.key}
+          onClick={() => setStatusFilter(p.key)}
+          className={
+            'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium ' +
+            (statusFilter === p.key ? p.activeBg + ' ' + p.color : 'border-card-border text-muted hover:border-muted')
+          }
+        >
+          {p.label} ({p.count})
+        </button>
+      ))}
+      <button
+        onClick={toggleAll}
+        className="ml-auto text-sm px-3 py-1.5 rounded-full border border-card-border text-muted hover:border-muted transition-colors font-medium inline-flex items-center gap-1.5"
+      >
+        {allExpanded ? <ChevronsDownUp className="w-3.5 h-3.5" /> : <ChevronsUpDown className="w-3.5 h-3.5" />}
+        {allExpanded ? 'Collapse All' : 'Expand All'}
+      </button>
+    </div>
+    {filteredFeatures.length > 0 ? filteredFeatures.map((feature, fi) => {
+      const key = feature.id || String(fi);
+      const isExpanded = expandedMap[key] ?? false;
+      const counts = (feature.scenarios || []).reduce(
+        (acc, s) => ({ ...acc, [s.status]: (acc[s.status] || 0) + 1 }),
+        { passed: 0, failed: 0, skipped: 0 } as Record<string, number>
+      );
+      const total = (feature.scenarios || []).length;
+      const passRate = total > 0 ? Math.round((counts.passed / total) * 100) : 0;
+      return (
+        <motion.div key={key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-card-border rounded-xl overflow-hidden">
+          <button
+            onClick={() => toggleFeature(key)}
+            className="w-full text-left p-5 flex items-start gap-3 hover:bg-card-border/20 transition-colors cursor-pointer"
+          >
+            <motion.div
+              animate={{ rotate: isExpanded ? 90 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-1 shrink-0"
+            >
+              <ChevronRight className="w-4 h-4 text-muted" />
+            </motion.div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-lg">{feature.name}</h3>
+              {feature.description && <p className="text-sm text-muted mt-0.5">{feature.description}</p>}
+              <div className="flex items-center gap-3 text-xs mt-2 flex-wrap">
+                {counts.passed > 0 && <span className="text-emerald-600 dark:text-emerald-400 font-medium">✅ {counts.passed} passed</span>}
+                {counts.failed > 0 && <span className="text-red-600 dark:text-red-400 font-medium">❌ {counts.failed} failed</span>}
+                {counts.skipped > 0 && <span className="text-yellow-600 dark:text-yellow-400 font-medium">⏭ {counts.skipped} skipped</span>}
+                {total > 0 && (
+                  <div className="flex items-center gap-2 ml-auto">
+                    <span className="text-muted">{passRate}%</span>
+                    <div className="w-20 h-1.5 bg-card-border rounded-full overflow-hidden flex">
+                      {counts.passed > 0 && <div className="h-full bg-emerald-500" style={{ width: `${(counts.passed / total) * 100}%` }} />}
+                      {counts.failed > 0 && <div className="h-full bg-red-500" style={{ width: `${(counts.failed / total) * 100}%` }} />}
+                      {counts.skipped > 0 && <div className="h-full bg-yellow-500" style={{ width: `${(counts.skipped / total) * 100}%` }} />}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </button>
+          <AnimatePresence initial={false}>
+            {isExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                className="overflow-hidden"
+              >
+                <div className="px-5 pb-5 space-y-3">
+                  {(feature.scenarios || []).map((scenario, si) => (
+                    <div key={si} className="border border-card-border rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">{scenario.name}</span>
+                        <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(scenario.status)}>{scenario.status}</span>
+                      </div>
+                      <div className="space-y-1">
+                        {(scenario.steps || []).map((step, si2) => (
+                          <div key={si2} className="text-xs">
+                            <div className="flex items-start gap-2">
+                              <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
+                              <span className={statusColor(step.status)}>{step.text}</span>
+                              {step.duration != null && step.duration > 0 && (
+                                <span className="text-muted ml-auto shrink-0">{formatDuration(step.duration)}</span>
+                              )}
+                            </div>
+                            {step.status === 'failed' && (step.error || step.errorMessage) && (
+                              <StepError error={(step.error || step.errorMessage)!} />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      );
+    }) : (
+      <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">
+        No {statusFilter !== 'all' ? statusFilter + ' ' : ''}scenarios found.
+      </div>
+    )}
+  </>);
+}
 
 export default function RunClient({ projectId, runId }: { projectId: string; runId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
@@ -143,109 +298,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
         ))}
       </motion.div>
 
-      {run.features && run.features.length > 0 && (() => {
-        const scenarioCounts = { passed: 0, failed: 0, skipped: 0 };
-        for (const f of run.features) {
-          for (const s of f.scenarios || []) {
-            if (s.status in scenarioCounts) scenarioCounts[s.status as keyof typeof scenarioCounts]++;
-          }
-        }
-        const allCount = scenarioCounts.passed + scenarioCounts.failed + scenarioCounts.skipped;
-        const pills: { key: StatusFilter; label: string; count: number; color: string; activeBg: string }[] = [
-          { key: 'all', label: 'All', count: allCount, color: 'text-accent', activeBg: 'bg-accent/15 border-accent/40' },
-          { key: 'failed', label: 'Failed', count: scenarioCounts.failed, color: 'text-red-600 dark:text-red-400', activeBg: 'bg-red-500/15 border-red-500/40' },
-          { key: 'skipped', label: 'Skipped', count: scenarioCounts.skipped, color: 'text-yellow-600 dark:text-yellow-400', activeBg: 'bg-yellow-500/15 border-yellow-500/40' },
-          { key: 'passed', label: 'Passed', count: scenarioCounts.passed, color: 'text-emerald-600 dark:text-emerald-400', activeBg: 'bg-emerald-500/15 border-emerald-500/40' },
-        ];
-
-        const filteredFeatures = statusFilter === 'all' ? run.features : run.features
-          .map(f => ({ ...f, scenarios: (f.scenarios || []).filter(s => s.status === statusFilter) }))
-          .filter(f => f.scenarios.length > 0);
-
-        return (<>
-          <div className="flex items-center gap-2 flex-wrap">
-            {pills.map(p => (
-              <button
-                key={p.key}
-                onClick={() => setStatusFilter(p.key)}
-                className={
-                  'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium ' +
-                  (statusFilter === p.key ? p.activeBg + ' ' + p.color : 'border-card-border text-muted hover:border-muted')
-                }
-              >
-                {p.label} ({p.count})
-              </button>
-            ))}
-          </div>
-          {filteredFeatures.length > 0 ? filteredFeatures.map((feature, fi) => (
-          <motion.div key={feature.id || fi} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-card-border rounded-xl p-5">
-            <h3 className="font-semibold text-lg mb-1">{feature.name}</h3>
-            <p className="text-sm text-muted mb-2">{feature.description}</p>
-            {(() => {
-              const counts = (feature.scenarios || []).reduce(
-                (acc, s) => ({ ...acc, [s.status]: (acc[s.status] || 0) + 1 }),
-                { passed: 0, failed: 0, skipped: 0 } as Record<string, number>
-              );
-              const total = (feature.scenarios || []).length;
-              const passRate = total > 0 ? Math.round((counts.passed / total) * 100) : 0;
-              return (
-                <div className="flex items-center gap-3 text-xs mb-4 flex-wrap">
-                  {counts.passed > 0 && (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">✅ {counts.passed} passed</span>
-                  )}
-                  {counts.failed > 0 && (
-                    <span className="text-red-600 dark:text-red-400 font-medium">❌ {counts.failed} failed</span>
-                  )}
-                  {counts.skipped > 0 && (
-                    <span className="text-yellow-600 dark:text-yellow-400 font-medium">⏭ {counts.skipped} skipped</span>
-                  )}
-                  {total > 0 && (
-                    <div className="flex items-center gap-2 ml-auto">
-                      <span className="text-muted">{passRate}%</span>
-                      <div className="w-20 h-1.5 bg-card-border rounded-full overflow-hidden flex">
-                        {counts.passed > 0 && <div className="h-full bg-emerald-500" style={{ width: `${(counts.passed / total) * 100}%` }} />}
-                        {counts.failed > 0 && <div className="h-full bg-red-500" style={{ width: `${(counts.failed / total) * 100}%` }} />}
-                        {counts.skipped > 0 && <div className="h-full bg-yellow-500" style={{ width: `${(counts.skipped / total) * 100}%` }} />}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-            <div className="space-y-3">
-              {(feature.scenarios || []).map((scenario, si) => (
-                <div key={si} className="border border-card-border rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{scenario.name}</span>
-                    <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(scenario.status)}>{scenario.status}</span>
-                  </div>
-                  <div className="space-y-1">
-                    {(scenario.steps || []).map((step, si2) => (
-                      <div key={si2} className="text-xs">
-                        <div className="flex items-start gap-2">
-                          <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
-                          <span className={statusColor(step.status)}>{step.text}</span>
-                          {step.duration != null && step.duration > 0 && (
-                            <span className="text-muted ml-auto shrink-0">{formatDuration(step.duration)}</span>
-                          )}
-                        </div>
-                        {step.status === 'failed' && (step.error || step.errorMessage) && (
-                          <StepError error={(step.error || step.errorMessage)!} />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )) : (
-            <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">
-              No {statusFilter !== 'all' ? statusFilter + ' ' : ''}scenarios found.
-            </div>
-          )}
-        </>);
-      })()}
+      <FeatureSections features={run.features} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
 
       {(!run.features || run.features.length === 0) && (
         <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">No detailed results for this run.</div>
