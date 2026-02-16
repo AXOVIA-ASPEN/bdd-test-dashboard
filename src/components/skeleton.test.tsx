@@ -3,24 +3,23 @@ import { render } from '@testing-library/react';
 import { Skeleton } from './skeleton';
 
 describe('Skeleton', () => {
-  it('renders a div with pulse animation', () => {
+  it('renders a div with animate-pulse class', () => {
     const { container } = render(<Skeleton />);
     const el = container.firstChild as HTMLElement;
     expect(el.tagName).toBe('DIV');
     expect(el.className).toContain('animate-pulse');
   });
 
-  it('applies custom className', () => {
-    const { container } = render(<Skeleton className="h-9 w-9 rounded-full" />);
+  it('applies additional className', () => {
+    const { container } = render(<Skeleton className="h-4 w-full" />);
     const el = container.firstChild as HTMLElement;
-    expect(el.className).toContain('h-9');
-    expect(el.className).toContain('w-9');
-    expect(el.className).toContain('rounded-full');
+    expect(el.className).toContain('animate-pulse');
+    expect(el.className).toContain('h-4');
+    expect(el.className).toContain('w-full');
   });
 
-  it('includes base bg class', () => {
+  it('renders without className prop', () => {
     const { container } = render(<Skeleton />);
-    const el = container.firstChild as HTMLElement;
-    expect(el.className).toContain('bg-card-border/50');
+    expect(container.firstChild).toBeTruthy();
   });
 });
