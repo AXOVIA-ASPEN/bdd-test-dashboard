@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useDashboardStore, type Project, type TestRun } from './use-dashboard-store';
 
 const mockProjects: Project[] = [
@@ -63,6 +63,18 @@ describe('useDashboardStore', () => {
       useDashboardStore.getState().setError(null);
       expect(useDashboardStore.getState().error).toBeNull();
     });
+
+    it('sets lastFetchedAt', () => {
+      const ts = '2026-02-16T03:00:00Z';
+      useDashboardStore.getState().setLastFetchedAt(ts);
+      expect(useDashboardStore.getState().lastFetchedAt).toBe(ts);
+    });
+
+    it('clears lastFetchedAt with null', () => {
+      useDashboardStore.getState().setLastFetchedAt('2026-01-01T00:00:00Z');
+      useDashboardStore.getState().setLastFetchedAt(null);
+      expect(useDashboardStore.getState().lastFetchedAt).toBeNull();
+    });
   });
 
   describe('toggleTheme', () => {
@@ -75,6 +87,21 @@ describe('useDashboardStore', () => {
       useDashboardStore.setState({ theme: 'light' });
       useDashboardStore.getState().toggleTheme();
       expect(useDashboardStore.getState().theme).toBe('dark');
+    });
+
+    it('persists theme to localStorage', () => {
+      const spy = vi.spyOn(Storage.prototype, 'setItem');
+      useDashboardStore.getState().toggleTheme();
+      expect(spy).toHaveBeenCalledWith('bdd-theme', 'light');
+      spy.mockRestore();
+    });
+
+    it('handles localStorage.setItem throwing', () => {
+      const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+      // Should not throw
+      useDashboardStore.getState().toggleTheme();
+      expect(useDashboardStore.getState().theme).toBe('light');
+      spy.mockRestore();
     });
   });
 
