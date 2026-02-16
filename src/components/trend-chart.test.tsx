@@ -5,10 +5,11 @@ import { TrendChart } from './trend-chart';
 vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => {
-      const { initial, animate, transition, whileTap, whileHover, ...rest } = props;
+      const { initial, animate, transition, whileTap, whileHover, exit, ...rest } = props;
       return <div {...rest}>{children}</div>;
     },
   },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
 const mockStore: any = {};

@@ -2,14 +2,14 @@ import { render, screen } from '@testing-library/react';
 import { Breadcrumb } from './breadcrumb';
 
 // Mock next/link
-jest.mock('next/link', () => {
-  return ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => (
+vi.mock('next/link', () => ({
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) => (
     <a href={href} {...props}>{children}</a>
-  );
-});
+  ),
+}));
 
 // Mock lucide-react
-jest.mock('lucide-react', () => ({
+vi.mock('lucide-react', () => ({
   ChevronRight: () => <span data-testid="chevron" />,
   Home: () => <span data-testid="home-icon" />,
 }));

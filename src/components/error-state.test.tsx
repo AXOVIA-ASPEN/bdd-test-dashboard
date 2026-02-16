@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ErrorState } from './error-state';
 
+vi.mock('lucide-react', () => ({
+  AlertTriangle: (props: Record<string, unknown>) => <span data-testid="alert-icon" {...props} />,
+  RefreshCw: (props: Record<string, unknown>) => <span data-testid="refresh-icon" {...props} />,
+}));
+
 describe('ErrorState', () => {
   it('renders default title and message', () => {
     render(<ErrorState message="Something went wrong" />);
@@ -14,7 +19,7 @@ describe('ErrorState', () => {
   });
 
   it('renders retry button when onRetry provided', () => {
-    const onRetry = jest.fn();
+    const onRetry = vi.fn();
     render(<ErrorState message="err" onRetry={onRetry} />);
     const btn = screen.getByRole('button', { name: /retry/i });
     fireEvent.click(btn);
