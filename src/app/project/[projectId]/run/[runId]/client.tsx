@@ -35,23 +35,28 @@ function FeatureSections({ features, statusFilter, setStatusFilter }: { features
   // Determine which features have failures for auto-expand
   const featureHasFailure = (f: Feature) => (f.scenarios || []).some(s => s.status === 'failed');
 
-  // Initialize expanded state: failed features expanded, others collapsed
-  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(() => {
+  // Reset expanded state when statusFilter or features change
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const visible = statusFilter === 'all' ? (features || []) :
+      (features || []).filter(f => (f.scenarios || []).some(s => s.status === statusFilter));
     const map: Record<string, boolean> = {};
-    (features || []).forEach((f, i) => {
+    visible.forEach((f, i) => {
       map[f.id || String(i)] = featureHasFailure(f);
     });
-    return map;
-  });
+    setExpandedMap(map);
+  }, [features, statusFilter]);
 
   if (!features || features.length === 0) return null;
 
+  const filteredKeys = (statusFilter === 'all' ? features : features.filter(f => (f.scenarios || []).some(s => s.status === statusFilter)));
   const toggleFeature = (key: string) => setExpandedMap(prev => ({ ...prev, [key]: !prev[key] }));
-  const allExpanded = features.every((f, i) => expandedMap[f.id || String(i)]);
+  const allExpanded = filteredKeys.every((f, i) => expandedMap[f.id || String(i)]);
   const toggleAll = () => {
     const newVal = !allExpanded;
     const map: Record<string, boolean> = {};
-    features.forEach((f, i) => { map[f.id || String(i)] = newVal; });
+    filteredKeys.forEach((f, i) => { map[f.id || String(i)] = newVal; });
     setExpandedMap(map);
   };
 
