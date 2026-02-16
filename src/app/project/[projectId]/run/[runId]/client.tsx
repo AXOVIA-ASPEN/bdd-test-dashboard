@@ -313,6 +313,16 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
         ))}
       </motion.div>
 
+      {run.error && (
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <h3 className="font-semibold text-red-600 dark:text-red-400">Run Error</h3>
+          </div>
+          <pre className="text-xs text-red-600/80 dark:text-red-400/80 font-mono whitespace-pre-wrap max-h-48 overflow-auto">{run.error}</pre>
+        </div>
+      )}
+
       <FeatureSections features={run.features} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
 
       {(!run.features || run.features.length === 0) && (

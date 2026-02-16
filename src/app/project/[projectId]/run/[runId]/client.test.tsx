@@ -173,6 +173,29 @@ describe('RunClient', () => {
     });
   });
 
+  it('displays run error banner when run.error is set', async () => {
+    mockGetDoc.mockResolvedValue({
+      exists: () => true,
+      id: 'run-err',
+      data: () => ({
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        duration: 0,
+        error: 'Build failed: exit code 1\nsome stack trace',
+        summary: { total: 0, passed: 0, failed: 0, skipped: 0 },
+      }),
+    });
+    mockGetDocs.mockResolvedValue({ docs: [] });
+
+    render(<RunClient projectId="test" runId="run-err" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Run Error')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Build failed: exit code 1/)).toBeInTheDocument();
+  });
+
   it('handles placeholder runId gracefully', () => {
     render(<RunClient projectId="test" runId="_" />);
     // Should skip loading and show not found
