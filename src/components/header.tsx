@@ -3,19 +3,26 @@ import { useDashboardStore } from '@/store/use-dashboard-store';
 import { Moon, Sun, FlaskConical, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
 function useRelativeTime(iso: string | null) {
-  return useMemo(() => {
-    if (!iso) return null;
-    const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-    if (diff < 10) return 'Just now';
-    if (diff < 60) return `${diff}s ago`;
-    const mins = Math.floor(diff / 60);
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    return `${hrs}h ago`;
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => {
+    if (!iso) { setText(null); return; }
+    const calc = () => {
+      const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+      if (diff < 10) return 'Just now';
+      if (diff < 60) return `${diff}s ago`;
+      const mins = Math.floor(diff / 60);
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      return `${hrs}h ago`;
+    };
+    setText(calc());
+    const id = setInterval(() => setText(calc()), 15000);
+    return () => clearInterval(id);
   }, [iso]);
+  return text;
 }
 
 export function Header() {

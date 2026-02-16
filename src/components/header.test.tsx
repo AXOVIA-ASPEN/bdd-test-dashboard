@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 
 // Mock framer-motion
@@ -115,5 +115,39 @@ describe('Header', () => {
     render(<Header />);
     const link = screen.getByText('Silverline').closest('a');
     expect(link?.getAttribute('href')).toBe('/');
+  });
+
+  it('updates relative time on interval', () => {
+    vi.useFakeTimers();
+    const now = Date.now();
+    vi.setSystemTime(now);
+    useDashboardStore.setState({ lastFetchedAt: new Date(now).toISOString() });
+    render(<Header />);
+    expect(screen.getByText(/Updated Just now/)).toBeTruthy();
+
+    // Advance 30 seconds + trigger interval
+    act(() => {
+      vi.advanceTimersByTime(30_000);
+    });
+    expect(screen.getByText(/Updated 30s ago/)).toBeTruthy();
+
+    // Advance to 2 minutes total
+    act(() => {
+      vi.advanceTimersByTime(90_000);
+    });
+    expect(screen.getByText(/Updated 2m ago/)).toBeTruthy();
+
+    vi.useRealTimers();
+  });
+
+  it('cleans up interval on unmount', () => {
+    vi.useFakeTimers();
+    const clearSpy = vi.spyOn(global, 'clearInterval');
+    useDashboardStore.setState({ lastFetchedAt: new Date().toISOString() });
+    const { unmount } = render(<Header />);
+    unmount();
+    expect(clearSpy).toHaveBeenCalled();
+    clearSpy.mockRestore();
+    vi.useRealTimers();
   });
 });
