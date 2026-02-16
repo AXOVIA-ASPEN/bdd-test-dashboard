@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { Skeleton } from './skeleton';
 import { ChevronDown } from 'lucide-react';
 
+type StatusFilter = 'all' | 'passed' | 'failed' | 'skipped';
+
 const PAGE_SIZE = 10;
 
 export function RecentRuns() {
@@ -14,9 +16,27 @@ export function RecentRuns() {
   const allRuns = useDashboardStore(s => s.runs);
   const projects = useDashboardStore(s => s.projects);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const runs = allRuns.slice(0, visibleCount);
-  const remaining = allRuns.length - visibleCount;
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
+  const deriveStatus = (run: typeof allRuns[number]) =>
+    run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+
+  const statusCounts = allRuns.reduce(
+    (acc, run) => { acc[deriveStatus(run)]++; return acc; },
+    { passed: 0, failed: 0, skipped: 0 } as Record<string, number>,
+  );
+
+  const filteredRuns = statusFilter === 'all' ? allRuns : allRuns.filter(run => deriveStatus(run) === statusFilter);
+  const runs = filteredRuns.slice(0, visibleCount);
+  const remaining = filteredRuns.length - visibleCount;
   const hasMore = remaining > 0;
+
+  const pills: { key: StatusFilter; label: string; count: number; color: string; activeBg: string }[] = [
+    { key: 'all', label: 'All', count: allRuns.length, color: 'text-accent', activeBg: 'bg-accent/15 border-accent/40' },
+    { key: 'failed', label: 'Failed', count: statusCounts.failed, color: 'text-red-600 dark:text-red-400', activeBg: 'bg-red-500/15 border-red-500/40' },
+    { key: 'skipped', label: 'Skipped', count: statusCounts.skipped, color: 'text-yellow-600 dark:text-yellow-400', activeBg: 'bg-yellow-500/15 border-yellow-500/40' },
+    { key: 'passed', label: 'Passed', count: statusCounts.passed, color: 'text-emerald-600 dark:text-emerald-400', activeBg: 'bg-emerald-500/15 border-emerald-500/40' },
+  ];
 
   if (loading) {
     return (
@@ -47,17 +67,33 @@ export function RecentRuns() {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">Recent Test Runs</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Recent Test Runs</h3>
+      </div>
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        {pills.map(p => (
+          <button
+            key={p.key}
+            onClick={() => { setStatusFilter(p.key); setVisibleCount(PAGE_SIZE); }}
+            className={
+              'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium ' +
+              (statusFilter === p.key ? p.activeBg + ' ' + p.color : 'border-card-border text-muted hover:border-muted')
+            }
+          >
+            {p.label} ({p.count})
+          </button>
+        ))}
+      </div>
       <div className="bg-card border border-card-border rounded-xl overflow-hidden">
         <div className="divide-y divide-card-border">
           {runs.length === 0 && (
             <div className="px-5 py-8 text-center text-muted text-sm">
-              No test runs yet. Trigger a run to see results here.
+              {statusFilter === 'all' ? 'No test runs yet. Trigger a run to see results here.' : `No ${statusFilter} runs found.`}
             </div>
           )}
           {runs.map((run, i) => {
             const proj = projects.find(p => p.id === run.projectId);
-            const overallStatus = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+            const overallStatus = deriveStatus(run);
             return (
               <motion.div
                 key={run.id}
