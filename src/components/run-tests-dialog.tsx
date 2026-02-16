@@ -16,7 +16,8 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
   const [branch, setBranch] = useState('main');
 
   const tagStr = selectedTags.length > 0 ? selectedTags.join(' and ') : '';
-  const cmdPreview = `make ${project.makeTarget}${tagStr ? ` TAGS="${tagStr}"` : ''}`;
+  const branchStr = branch && branch !== 'main' ? ` BRANCH="${branch}"` : '';
+  const cmdPreview = `make ${project.makeTarget}${tagStr ? ` TAGS="${tagStr}"` : ''}${branchStr}`;
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
