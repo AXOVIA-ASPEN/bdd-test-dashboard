@@ -146,11 +146,13 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
               )}
             </div>
             <div>
-              <label className="text-xs text-muted mb-1 block">Status</label>
-              <div className="flex gap-1.5">
+              <span id="status-filter-label" className="text-xs text-muted mb-1 block">Status</span>
+              <div className="flex gap-1.5" role="radiogroup" aria-labelledby="status-filter-label">
                 {STATUS_OPTIONS.map(s => (
                   <button
                     key={s}
+                    role="radio"
+                    aria-checked={statusFilter === s}
                     onClick={() => setStatusFilter(s)}
                     className={'px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (statusFilter === s ? 'bg-accent/20 border-accent/40 text-accent' : 'border-card-border text-muted hover:text-foreground')}
                   >
@@ -160,10 +162,11 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted mb-1 block">Branch</label>
+              <label htmlFor="branch-filter" className="text-xs text-muted mb-1 block">Branch</label>
               <div className="relative">
                 <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
                 <select
+                  id="branch-filter"
                   value={branchFilter}
                   onChange={e => setBranchFilter(e.target.value)}
                   className="w-full pl-8 pr-3 py-1.5 bg-transparent border border-card-border rounded-lg text-sm focus:outline-none focus:border-accent/50"

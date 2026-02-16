@@ -68,11 +68,12 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
 
             {/* Tags */}
             <div className="mb-4">
-              <label className="text-sm text-muted mb-2 block">Tags (select to filter)</label>
-              <div className="flex flex-wrap gap-2">
+              <span id="tag-filters-label" className="text-sm text-muted mb-2 block">Tags (select to filter)</span>
+              <div className="flex flex-wrap gap-2" role="group" aria-labelledby="tag-filters-label">
                 {(project.tags || []).map(tag => (
                   <button
                     key={tag}
+                    aria-pressed={selectedTags.includes(tag)}
                     onClick={() => toggleTag(tag)}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                       selectedTags.includes(tag)
@@ -88,8 +89,9 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
 
             {/* Branch */}
             <div className="mb-4">
-              <label className="text-sm text-muted mb-2 block">Branch</label>
+              <label htmlFor="run-branch" className="text-sm text-muted mb-2 block">Branch</label>
               <input
+                id="run-branch"
                 type="text"
                 value={branch}
                 onChange={e => setBranch(e.target.value)}
