@@ -1,77 +1,96 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg } from './utils';
 
 describe('cn', () => {
   it('merges class names', () => {
     expect(cn('px-2', 'py-1')).toBe('px-2 py-1');
   });
-  it('handles tailwind conflicts', () => {
+
+  it('handles conditional classes', () => {
+    expect(cn('base', false && 'hidden', 'extra')).toBe('base extra');
+  });
+
+  it('merges tailwind conflicts', () => {
     expect(cn('px-2', 'px-4')).toBe('px-4');
   });
-  it('handles conditional classes', () => {
-    expect(cn('base', false && 'hidden', 'end')).toBe('base end');
+
+  it('handles empty input', () => {
+    expect(cn()).toBe('');
   });
 });
 
 describe('formatDuration', () => {
-  it('formats milliseconds', () => {
+  it('formats milliseconds < 1000', () => {
     expect(formatDuration(500)).toBe('500ms');
-  });
-  it('formats seconds', () => {
-    expect(formatDuration(2500)).toBe('2.5s');
-  });
-  it('formats minutes and seconds', () => {
-    expect(formatDuration(125000)).toBe('2m 5s');
-  });
-  it('handles zero', () => {
     expect(formatDuration(0)).toBe('0ms');
+    expect(formatDuration(999)).toBe('999ms');
   });
-  it('handles exactly 1 second', () => {
+
+  it('formats seconds < 60', () => {
     expect(formatDuration(1000)).toBe('1.0s');
+    expect(formatDuration(5500)).toBe('5.5s');
+    expect(formatDuration(59999)).toBe('60.0s'); // 59.999s rounds to 60.0
   });
-  it('handles exactly 60 seconds', () => {
+
+  it('formats minutes and seconds', () => {
     expect(formatDuration(60000)).toBe('1m 0s');
+    expect(formatDuration(90000)).toBe('1m 30s');
+    expect(formatDuration(3600000)).toBe('60m 0s');
+    expect(formatDuration(125000)).toBe('2m 5s');
   });
 });
 
 describe('formatRelativeTime', () => {
-  it('returns "just now" for < 60 seconds ago', () => {
-    const now = new Date();
-    expect(formatRelativeTime(now.toISOString())).toBe('just now');
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
+
+  it('returns "just now" for < 60 seconds', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-02-16T12:00:30Z').getTime());
+    expect(formatRelativeTime('2026-02-16T12:00:00Z')).toBe('just now');
+  });
+
   it('returns minutes ago', () => {
-    const d = new Date(Date.now() - 5 * 60 * 1000);
-    expect(formatRelativeTime(d.toISOString())).toBe('5m ago');
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-02-16T12:05:00Z').getTime());
+    expect(formatRelativeTime('2026-02-16T12:00:00Z')).toBe('5m ago');
   });
+
   it('returns hours ago', () => {
-    const d = new Date(Date.now() - 3 * 60 * 60 * 1000);
-    expect(formatRelativeTime(d.toISOString())).toBe('3h ago');
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-02-16T15:00:00Z').getTime());
+    expect(formatRelativeTime('2026-02-16T12:00:00Z')).toBe('3h ago');
   });
+
   it('returns days ago', () => {
-    const d = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-    expect(formatRelativeTime(d.toISOString())).toBe('5d ago');
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-02-19T12:00:00Z').getTime());
+    expect(formatRelativeTime('2026-02-16T12:00:00Z')).toBe('3d ago');
   });
-  it('returns formatted date for 30+ days', () => {
-    const d = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
-    const result = formatRelativeTime(d.toISOString());
-    // Should fall through to formatDate
-    expect(result).toMatch(/\w+ \d+, \d{4}/);
+
+  it('returns formatted date for >= 30 days', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(new Date('2026-04-16T12:00:00Z').getTime());
+    expect(formatRelativeTime('2026-02-16T12:00:00Z')).toBe('Feb 16, 2026');
   });
 });
 
 describe('formatDate', () => {
   it('formats ISO date string', () => {
-    const result = formatDate('2026-02-14T12:00:00Z');
-    expect(result).toContain('Feb');
-    expect(result).toContain('14');
-    expect(result).toContain('2026');
+    expect(formatDate('2026-02-16T12:00:00Z')).toBe('Feb 16, 2026');
+  });
+
+  it('formats different dates', () => {
+    expect(formatDate('2025-12-25T00:00:00Z')).toBe('Dec 25, 2025');
+    expect(formatDate('2026-01-01T00:00:00Z')).toBe('Jan 1, 2026');
   });
 });
 
 describe('formatTime', () => {
-  it('formats ISO time string', () => {
-    const result = formatTime('2026-02-14T15:30:00Z');
-    expect(result).toMatch(/\d{2}:\d{2}/);
+  it('formats time with UTC suffix', () => {
+    const result = formatTime('2026-02-16T14:30:00Z');
+    expect(result).toBe('02:30 PM UTC');
+  });
+
+  it('formats midnight', () => {
+    const result = formatTime('2026-02-16T00:00:00Z');
+    expect(result).toBe('12:00 AM UTC');
   });
 });
 
@@ -79,34 +98,42 @@ describe('statusColor', () => {
   it('returns emerald for passed', () => {
     expect(statusColor('passed')).toContain('emerald');
   });
+
   it('returns red for failed', () => {
     expect(statusColor('failed')).toContain('red');
   });
+
   it('returns yellow for skipped', () => {
     expect(statusColor('skipped')).toContain('yellow');
   });
-  it('returns slate for unknown', () => {
+
+  it('returns slate for unknown status', () => {
     expect(statusColor('unknown')).toContain('slate');
   });
 });
 
 describe('statusBg', () => {
-  it('returns correct classes for passed', () => {
+  it('returns emerald bg for passed', () => {
     expect(statusBg('passed')).toContain('emerald');
   });
-  it('returns correct classes for failed', () => {
+
+  it('returns red bg for failed', () => {
     expect(statusBg('failed')).toContain('red');
   });
-  it('returns correct classes for skipped', () => {
+
+  it('returns yellow bg for skipped', () => {
     expect(statusBg('skipped')).toContain('yellow');
   });
-  it('returns correct classes for pending', () => {
+
+  it('returns blue bg for pending', () => {
     expect(statusBg('pending')).toContain('blue');
   });
-  it('returns correct classes for running', () => {
+
+  it('returns blue bg for running', () => {
     expect(statusBg('running')).toContain('blue');
   });
-  it('returns slate for unknown status', () => {
-    expect(statusBg('other')).toContain('slate');
+
+  it('returns slate bg for unknown status', () => {
+    expect(statusBg('anything')).toContain('slate');
   });
 });
