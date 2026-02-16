@@ -43,6 +43,13 @@ body {
   box-shadow: none;
 }
 
+/* Visible focus ring for keyboard users only (not mouse clicks) — WCAG 2.4.7 */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Simple chart bar */
 .chart-bar {
   transition: height 0.5s ease;
