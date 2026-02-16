@@ -1,14 +1,22 @@
 'use client';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { formatDate, formatTime, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from './skeleton';
+import { ChevronDown } from 'lucide-react';
+
+const PAGE_SIZE = 10;
 
 export function RecentRuns() {
   const loading = useDashboardStore(s => s.loading);
-  const runs = useDashboardStore(s => s.runs).slice(0, 10);
+  const allRuns = useDashboardStore(s => s.runs);
   const projects = useDashboardStore(s => s.projects);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const runs = allRuns.slice(0, visibleCount);
+  const remaining = allRuns.length - visibleCount;
+  const hasMore = remaining > 0;
 
   if (loading) {
     return (
@@ -84,6 +92,24 @@ export function RecentRuns() {
           })}
         </div>
       </div>
+      <AnimatePresence>
+        {hasMore && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-3 flex justify-center"
+          >
+            <button
+              onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+              className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-card-border/30"
+            >
+              <ChevronDown className="w-4 h-4" />
+              Show More ({remaining} remaining)
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
