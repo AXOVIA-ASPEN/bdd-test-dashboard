@@ -19,6 +19,7 @@ import { SummaryCards } from './summary-cards';
 describe('SummaryCards', () => {
   beforeEach(() => {
     useDashboardStore.setState({
+      loading: false,
       projects: [
         { id: 'p1', name: 'P1', description: '', color: '#f00', repo: '', makeTarget: '', tags: [] },
         { id: 'p2', name: 'P2', description: '', color: '#0f0', repo: '', makeTarget: '', tags: [] },
@@ -59,7 +60,7 @@ describe('SummaryCards', () => {
   });
 
   it('shows 0 values when no runs exist', () => {
-    useDashboardStore.setState({ runs: [] });
+    useDashboardStore.setState({ runs: [], loading: false });
     render(<SummaryCards />);
     expect(screen.getByText('0%')).toBeTruthy();
   });
