@@ -1,0 +1,99 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - navigation "Main navigation" [ref=e3]:
+    - generic [ref=e4]:
+      - link "Silverline Acceptance Test Dashboard" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - generic [ref=e9]:
+          - heading "Silverline" [level=1] [ref=e10]
+          - paragraph [ref=e11]: Acceptance Test Dashboard
+      - generic [ref=e12]:
+        - generic [ref=e13]: Updated Just now
+        - button "Refresh data" [ref=e14]:
+          - img [ref=e15]
+        - button "Toggle theme" [ref=e20]:
+          - img [ref=e21]
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]: Total Tests
+            - img [ref=e33]
+          - paragraph [ref=e35]: "0"
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: Pass Rate
+            - img [ref=e39]
+          - paragraph [ref=e42]: 0%
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]: Failures
+            - img [ref=e46]
+          - paragraph [ref=e50]: "0"
+        - generic [ref=e51]:
+          - generic [ref=e52]:
+            - generic [ref=e53]: Skipped
+            - img [ref=e54]
+          - paragraph [ref=e56]: "0"
+      - generic [ref=e57]:
+        - heading "Projects" [level=3] [ref=e58]
+        - generic [ref=e59]:
+          - link "BDD Test Dashboard ⏳ No runs Self-testing acceptance test dashboard No runs yet" [ref=e61] [cursor=pointer]:
+            - /url: /project/bdd-test-dashboard/
+            - generic [ref=e62]:
+              - generic [ref=e63]:
+                - generic [ref=e64]:
+                  - heading "BDD Test Dashboard" [level=4] [ref=e66]
+                  - generic [ref=e67]:
+                    - generic [ref=e68]: ⏳
+                    - text: No runs
+                - paragraph [ref=e69]: Self-testing acceptance test dashboard
+              - img [ref=e70]
+            - paragraph [ref=e72]: No runs yet
+          - link "Docmind ⏳ No runs AI-powered document management and analysis platform No runs yet" [ref=e74] [cursor=pointer]:
+            - /url: /project/docmind/
+            - generic [ref=e75]:
+              - generic [ref=e76]:
+                - generic [ref=e77]:
+                  - heading "Docmind" [level=4] [ref=e79]
+                  - generic [ref=e80]:
+                    - generic [ref=e81]: ⏳
+                    - text: No runs
+                - paragraph [ref=e82]: AI-powered document management and analysis platform
+              - img [ref=e83]
+            - paragraph [ref=e85]: No runs yet
+          - link "Flipper AI ⏳ No runs Multi-marketplace flipping tool with AI-driven pricing No runs yet" [ref=e87] [cursor=pointer]:
+            - /url: /project/flipper-ai/
+            - generic [ref=e88]:
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - heading "Flipper AI" [level=4] [ref=e92]
+                  - generic [ref=e93]:
+                    - generic [ref=e94]: ⏳
+                    - text: No runs
+                - paragraph [ref=e95]: Multi-marketplace flipping tool with AI-driven pricing
+              - img [ref=e96]
+            - paragraph [ref=e98]: No runs yet
+          - link "Real Random Portal ⏳ No runs True random number generation API and developer portal No runs yet" [ref=e100] [cursor=pointer]:
+            - /url: /project/real-random-portal/
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - generic [ref=e103]:
+                  - heading "Real Random Portal" [level=4] [ref=e105]
+                  - generic [ref=e106]:
+                    - generic [ref=e107]: ⏳
+                    - text: No runs
+                - paragraph [ref=e108]: True random number generation API and developer portal
+              - img [ref=e109]
+            - paragraph [ref=e111]: No runs yet
+      - generic [ref=e112]:
+        - heading "Recent Test Runs" [level=3] [ref=e113]
+        - generic [ref=e116]: No test runs yet. Trigger a run to see results here.
+  - alert [ref=e117]
+```

@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { Activity, CheckCircle2, XCircle, SkipForward } from 'lucide-react';
+import { Skeleton } from './skeleton';
 
 const cardDefs = [
   { key: 'total' as const, label: 'Total Tests', icon: Activity, color: 'text-accent', suffix: '' },
@@ -12,6 +13,7 @@ const cardDefs = [
 ];
 
 export function SummaryCards() {
+  const loading = useDashboardStore(s => s.loading);
   const projects = useDashboardStore(s => s.projects);
   const runs = useDashboardStore(s => s.runs);
 
@@ -27,6 +29,22 @@ export function SummaryCards() {
     }), { passed: 0, failed: 0, skipped: 0, total: 0 });
     return { ...s, passRate: s.total > 0 ? Math.round((s.passed / s.total) * 100) : 0 };
   }, [projects, runs]);
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-card border border-card-border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-5 w-5 rounded-md" />
+            </div>
+            <Skeleton className="h-9 w-16" />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

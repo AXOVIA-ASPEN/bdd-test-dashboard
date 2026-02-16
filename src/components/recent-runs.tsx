@@ -3,10 +3,39 @@ import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { formatDate, formatTime, statusBg } from '@/lib/utils';
 import Link from 'next/link';
+import { Skeleton } from './skeleton';
 
 export function RecentRuns() {
+  const loading = useDashboardStore(s => s.loading);
   const runs = useDashboardStore(s => s.runs).slice(0, 10);
   const projects = useDashboardStore(s => s.projects);
+
+  if (loading) {
+    return (
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Recent Test Runs</h3>
+        <div className="bg-card border border-card-border rounded-xl overflow-hidden">
+          <div className="divide-y divide-card-border">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between px-5 py-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-2 h-2 rounded-full" />
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-3 w-44" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-3 w-10" />
+                  <Skeleton className="h-5 w-14 rounded-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
