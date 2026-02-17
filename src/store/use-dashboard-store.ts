@@ -88,7 +88,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   lastFetchedAt: null,
   connected: true,
   setConnected: (val) => set({ connected: val }),
-  browserOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  browserOnline: true, // Default to true; DataProvider effect sets actual value on mount
   setBrowserOnline: (val) => set({ browserOnline: val }),
   theme: (() => { try { return (localStorage.getItem('bdd-theme') as Theme) || 'dark'; } catch { return 'dark' as Theme; } })(),
   toggleTheme: () => set(s => {
