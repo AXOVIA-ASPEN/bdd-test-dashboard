@@ -140,9 +140,35 @@ export function ProjectCards() {
                       <span className="text-yellow-600 dark:text-yellow-400">{latestRun.summary?.skipped ?? 0} skipped</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2">
-                      <div className="flex-1 h-2 bg-card-border rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${rate}%` }} />
-                      </div>
+                      {(() => {
+                        const total = latestRun.summary?.total || 1;
+                        const passed = latestRun.summary?.passed ?? 0;
+                        const failed = latestRun.summary?.failed ?? 0;
+                        const skipped = latestRun.summary?.skipped ?? 0;
+                        const pPct = (passed / total) * 100;
+                        const fPct = (failed / total) * 100;
+                        const sPct = (skipped / total) * 100;
+                        // Determine rounding: first non-zero gets rounded-l, last non-zero gets rounded-r
+                        const segments = [
+                          { pct: pPct, color: 'bg-emerald-500', key: 'passed' },
+                          { pct: fPct, color: 'bg-red-500', key: 'failed' },
+                          { pct: sPct, color: 'bg-yellow-500', key: 'skipped' },
+                        ].filter(s => s.pct > 0);
+                        return (
+                          <div
+                            className="flex-1 h-2 bg-card-border rounded-full overflow-hidden flex"
+                            title={`${passed} passed, ${failed} failed, ${skipped} skipped`}
+                          >
+                            {segments.map((seg, idx) => (
+                              <div
+                                key={seg.key}
+                                className={`h-full ${seg.color} transition-all ${idx === 0 ? 'rounded-l-full' : ''} ${idx === segments.length - 1 ? 'rounded-r-full' : ''}`}
+                                style={{ width: `${seg.pct}%` }}
+                              />
+                            ))}
+                          </div>
+                        );
+                      })()}
                       <span className="text-xs font-medium text-muted">{rate}%</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
