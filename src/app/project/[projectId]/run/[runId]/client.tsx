@@ -7,18 +7,34 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
 
 function StepError({ error }: { error: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const lines = error.split('\n');
   const truncated = lines.length > 3 && !expanded;
   const display = truncated ? lines.slice(0, 3).join('\n') : error;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(error).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
-    <div className="mt-1 ml-14 text-xs text-red-600/80 dark:text-red-400/80 font-mono whitespace-pre-wrap bg-red-500/5 rounded p-2 max-h-48 overflow-auto">
+    <div className="group/error relative mt-1 ml-14 text-xs text-red-600/80 dark:text-red-400/80 font-mono whitespace-pre-wrap bg-red-500/5 rounded p-2 max-h-48 overflow-auto">
+      <button
+        onClick={handleCopy}
+        aria-label={copied ? 'Copied' : 'Copy error message'}
+        className="absolute top-1.5 right-1.5 p-1 rounded opacity-0 group-hover/error:opacity-100 focus:opacity-100 transition-opacity bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 cursor-pointer"
+      >
+        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+      </button>
       {display}
       {lines.length > 3 && (
         <button onClick={() => setExpanded(!expanded)} className="block mt-1 text-red-600 dark:text-red-400 underline cursor-pointer">
