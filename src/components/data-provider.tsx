@@ -10,6 +10,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const retryCount = useDashboardStore(s => s.retryCount);
   const initialLoad = useRef(true);
 
+  // Browser online/offline detection
+  useEffect(() => {
+    const store = useDashboardStore.getState();
+    store.setBrowserOnline(navigator.onLine);
+
+    const handleOnline = () => useDashboardStore.getState().setBrowserOnline(true);
+    const handleOffline = () => useDashboardStore.getState().setBrowserOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   useEffect(() => {
     initialLoad.current = true;
     const store = useDashboardStore.getState();

@@ -63,6 +63,8 @@ interface DashboardState {
   lastFetchedAt: string | null;
   connected: boolean;
   setConnected: (val: boolean) => void;
+  browserOnline: boolean;
+  setBrowserOnline: (val: boolean) => void;
   theme: Theme;
   toggleTheme: () => void;
   setProjects: (projects: Project[]) => void;
@@ -86,6 +88,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   lastFetchedAt: null,
   connected: true,
   setConnected: (val) => set({ connected: val }),
+  browserOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  setBrowserOnline: (val) => set({ browserOnline: val }),
   theme: (() => { try { return (localStorage.getItem('bdd-theme') as Theme) || 'dark'; } catch { return 'dark' as Theme; } })(),
   toggleTheme: () => set(s => {
     const next = s.theme === 'dark' ? 'light' : 'dark';
