@@ -1,0 +1,12 @@
+{
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [],
+  "lowPriorityFiles": [
+    "static/LOVSKcaPtwRdvm-qCawyy/_ssgManifest.js",
+    "static/LOVSKcaPtwRdvm-qCawyy/_buildManifest.js"
+  ],
+  "rootMainFiles": []
+}

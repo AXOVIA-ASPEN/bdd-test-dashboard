@@ -30,7 +30,7 @@ export function Header() {
   const relTime = useRelativeTime(lastFetchedAt);
 
   return (
-    <header role="navigation" aria-label="Main navigation" className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">
+    <header className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
@@ -41,7 +41,7 @@ export function Header() {
             <p className="text-xs text-muted -mt-0.5">Acceptance Test Dashboard</p>
           </div>
         </Link>
-        <div className="flex items-center gap-2">
+        <nav aria-label="Site controls" className="flex items-center gap-2">
           {relTime && (
             <span className="text-xs text-muted hidden sm:inline">Updated {relTime}</span>
           )}
@@ -62,7 +62,7 @@ export function Header() {
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </motion.button>
-        </div>
+        </nav>
       </div>
     </header>
   );
