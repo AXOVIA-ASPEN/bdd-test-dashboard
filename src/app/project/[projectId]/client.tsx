@@ -1,12 +1,12 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
-import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, statusBg, generateCsv, downloadCsv } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { ArrowUpDown, ChevronRight, Filter, Play, Search } from 'lucide-react';
+import { ArrowUpDown, ChevronRight, Download, Filter, Play, Search } from 'lucide-react';
 import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
@@ -89,6 +89,15 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
       }
     });
   }, [projectRuns, statusFilter, branchFilter, sortBy]);
+
+  const handleExportCsv = useCallback(() => {
+    if (!project || runs.length === 0) return;
+    const dateStr = new Date().toISOString().slice(0, 10);
+    const safeName = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const filename = `${safeName}-runs-${dateStr}.csv`;
+    const content = generateCsv(runs, project.name);
+    downloadCsv(content, filename);
+  }, [project, runs]);
 
   if (loading) {
     return <ProjectSkeleton />;
@@ -224,6 +233,18 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
               {isFiltered && (
                 <span className="ml-1 w-2 h-2 rounded-full bg-accent" />
               )}
+            </button>
+
+            {/* Export CSV button */}
+            <button
+              onClick={handleExportCsv}
+              disabled={runs.length === 0}
+              aria-label="Export runs as CSV"
+              title={runs.length === 0 ? 'No runs to export' : `Export ${runs.length} run${runs.length === 1 ? '' : 's'} as CSV`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors bg-card-border/50 text-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
             </button>
           </div>
         </div>

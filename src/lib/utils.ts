@@ -54,3 +54,61 @@ export function statusBg(status: string): string {
     default: return 'bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-500/30';
   }
 }
+
+export interface CsvRun {
+  id: string;
+  timestamp: string;
+  branch?: string;
+  environment?: string;
+  status?: string;
+  summary?: {
+    total?: number;
+    passed?: number;
+    failed?: number;
+    skipped?: number;
+  };
+  duration?: number;
+}
+
+function escapeCsvValue(value: string | number | undefined | null): string {
+  const str = String(value ?? '');
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+export function generateCsv(runs: CsvRun[], projectName: string): string {
+  const headers = ['Run ID', 'Date', 'Time', 'Branch', 'Environment', 'Status', 'Total', 'Passed', 'Failed', 'Skipped', 'Duration'];
+  const rows = runs.map(run => {
+    const status = run.status || (
+      (run.summary?.failed ?? 0) > 0 ? 'failed' :
+      (run.summary?.skipped ?? 0) > 0 ? 'skipped' : 'passed'
+    );
+    return [
+      escapeCsvValue(run.id),
+      escapeCsvValue(formatDate(run.timestamp)),
+      escapeCsvValue(formatTime(run.timestamp)),
+      escapeCsvValue(run.branch),
+      escapeCsvValue(run.environment),
+      escapeCsvValue(status),
+      escapeCsvValue(run.summary?.total),
+      escapeCsvValue(run.summary?.passed),
+      escapeCsvValue(run.summary?.failed),
+      escapeCsvValue(run.summary?.skipped),
+      escapeCsvValue(formatDuration(run.duration ?? 0)),
+    ].join(',');
+  });
+  void projectName; // used by caller to name the file
+  return [headers.join(','), ...rows].join('\n');
+}
+
+export function downloadCsv(content: string, filename: string): void {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}

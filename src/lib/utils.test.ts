@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg } from './utils';
+import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg, generateCsv } from './utils';
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -130,5 +130,119 @@ describe('statusBg', () => {
 
   it('returns slate bg for unknown status', () => {
     expect(statusBg('unknown')).toContain('slate');
+  });
+});
+
+describe('generateCsv', () => {
+  const sampleRuns = [
+    {
+      id: 'run-001',
+      timestamp: '2026-02-16T14:30:00Z',
+      branch: 'main',
+      environment: 'production',
+      status: 'passed',
+      summary: { total: 100, passed: 98, failed: 0, skipped: 2 },
+      duration: 90000,
+    },
+    {
+      id: 'run-002',
+      timestamp: '2026-02-15T10:00:00Z',
+      branch: 'develop',
+      environment: 'staging',
+      status: 'failed',
+      summary: { total: 80, passed: 60, failed: 15, skipped: 5 },
+      duration: 65000,
+    },
+  ];
+
+  it('generates a CSV with correct headers', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    const firstLine = csv.split('\n')[0];
+    expect(firstLine).toBe('Run ID,Date,Time,Branch,Environment,Status,Total,Passed,Failed,Skipped,Duration');
+  });
+
+  it('includes correct number of rows (header + data)', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    const lines = csv.split('\n');
+    expect(lines).toHaveLength(3); // 1 header + 2 data rows
+  });
+
+  it('includes run id in each row', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    expect(csv).toContain('run-001');
+    expect(csv).toContain('run-002');
+  });
+
+  it('includes branch and environment in rows', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    expect(csv).toContain('main');
+    expect(csv).toContain('production');
+    expect(csv).toContain('develop');
+    expect(csv).toContain('staging');
+  });
+
+  it('includes status in rows', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    expect(csv).toContain('passed');
+    expect(csv).toContain('failed');
+  });
+
+  it('includes summary counts', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    const rows = csv.split('\n');
+    expect(rows[1]).toContain('100'); // total
+    expect(rows[1]).toContain('98');  // passed
+    expect(rows[1]).toContain('2');   // skipped
+  });
+
+  it('includes formatted duration', () => {
+    const csv = generateCsv(sampleRuns, 'My Project');
+    expect(csv).toContain('1m 30s'); // 90000ms
+    expect(csv).toContain('1m 5s');  // 65000ms
+  });
+
+  it('derives status from summary when status is not set', () => {
+    const runs = [
+      { id: 'r1', timestamp: '2026-02-16T00:00:00Z', summary: { total: 10, passed: 8, failed: 2, skipped: 0 }, duration: 5000 },
+      { id: 'r2', timestamp: '2026-02-16T00:00:00Z', summary: { total: 10, passed: 10, failed: 0, skipped: 0 }, duration: 5000 },
+    ];
+    const csv = generateCsv(runs, 'Test');
+    const lines = csv.split('\n');
+    expect(lines[1]).toContain('failed');
+    expect(lines[2]).toContain('passed');
+  });
+
+  it('handles empty run list', () => {
+    const csv = generateCsv([], 'Empty Project');
+    const lines = csv.split('\n');
+    expect(lines).toHaveLength(1); // only header
+    expect(lines[0]).toContain('Run ID');
+  });
+
+  it('escapes commas in values', () => {
+    const runs = [
+      { id: 'run,with,commas', timestamp: '2026-02-16T00:00:00Z', summary: { total: 1, passed: 1, failed: 0, skipped: 0 }, duration: 1000 },
+    ];
+    const csv = generateCsv(runs, 'Test');
+    expect(csv).toContain('"run,with,commas"');
+  });
+
+  it('escapes double quotes in values', () => {
+    const runs = [
+      { id: 'run"quoted"', timestamp: '2026-02-16T00:00:00Z', summary: { total: 1, passed: 1, failed: 0, skipped: 0 }, duration: 1000 },
+    ];
+    const csv = generateCsv(runs, 'Test');
+    expect(csv).toContain('"run""quoted"""');
+  });
+
+  it('handles undefined optional fields gracefully', () => {
+    const runs = [
+      { id: 'run-bare', timestamp: '2026-02-16T00:00:00Z' },
+    ];
+    const csv = generateCsv(runs, 'Test');
+    expect(csv).toContain('run-bare');
+    // Should not throw; optional fields are empty strings
+    const lines = csv.split('\n');
+    expect(lines).toHaveLength(2);
   });
 });
