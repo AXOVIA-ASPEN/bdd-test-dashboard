@@ -47,7 +47,16 @@ export function TrendChart() {
     return result;
   }, [runs]);
 
-  if (data.length === 0) return null;
+  if (data.length === 0) {
+    return (
+      <div className="bg-card border border-card-border rounded-xl p-6">
+        <h3 className="text-lg font-semibold mb-4">Pass Rate Trend</h3>
+        <div className="flex items-center justify-center h-40 text-muted text-sm">
+          No test run data in the last 14 days. Run some tests to see trends here.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
