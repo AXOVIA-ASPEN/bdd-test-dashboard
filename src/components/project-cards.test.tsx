@@ -17,6 +17,8 @@ vi.mock('next/link', () => ({
 
 vi.mock('lucide-react', () => ({
   ChevronRight: () => <span data-testid="chevron" />,
+  Search: () => <span data-testid="search-icon" />,
+  X: () => <span data-testid="x-icon" />,
 }));
 
 const mockStore: any = {};

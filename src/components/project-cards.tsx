@@ -66,6 +66,7 @@ export function ProjectCards() {
             value={filter}
             onChange={e => setFilter(e.target.value)}
             placeholder="Filter projects..."
+            aria-label="Filter projects by name"
             className="pl-9 pr-8 py-1.5 text-sm bg-card border border-card-border rounded-lg focus:outline-none focus:border-accent/50 transition-colors w-56"
           />
           {filter && (
@@ -78,6 +79,9 @@ export function ProjectCards() {
           )}
         </div>
       </div>
+      {filtered.length === 0 && filter && (
+        <p className="text-sm text-muted text-center py-8">No projects match your filter</p>
+      )}
       <div className="grid gap-4 md:grid-cols-3">
         {filtered.map((p, i) => {
           const latestRun = runs.find(r => r.projectId === p.id);
