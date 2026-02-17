@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { RunTestsDialog } from './run-tests-dialog';
 import type { Project } from '@/store/use-dashboard-store';
 
@@ -33,6 +33,12 @@ describe('RunTestsDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock clipboard API
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
   });
 
   it('renders nothing when closed', () => {
@@ -141,5 +147,47 @@ describe('RunTestsDialog', () => {
       <RunTestsDialog project={noTagProject} open={true} onClose={onClose} onTriggered={onTriggered} />
     );
     expect(screen.getByText('make test-bdd')).toBeInTheDocument();
+  });
+
+  // Copy-to-clipboard tests
+  it('renders copy button next to command preview', () => {
+    render(
+      <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
+    );
+    expect(screen.getByRole('button', { name: 'Copy command' })).toBeInTheDocument();
+  });
+
+  it('calls clipboard.writeText with the command when copy is clicked', async () => {
+    render(
+      <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
+    );
+    const copyBtn = screen.getByRole('button', { name: 'Copy command' });
+    await act(async () => { fireEvent.click(copyBtn); });
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('make test-bdd');
+  });
+
+  it('copies the full command including tags when tags are selected', async () => {
+    render(
+      <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
+    );
+    fireEvent.click(screen.getByText('@smoke'));
+    const copyBtn = screen.getByRole('button', { name: 'Copy command' });
+    await act(async () => { fireEvent.click(copyBtn); });
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('make test-bdd TAGS="@smoke"');
+  });
+
+  it('shows checkmark feedback after copy and reverts after 2 seconds', async () => {
+    vi.useFakeTimers();
+    render(
+      <RunTestsDialog project={mockProject} open={true} onClose={onClose} onTriggered={onTriggered} />
+    );
+    const copyBtn = screen.getByRole('button', { name: 'Copy command' });
+    await act(async () => { fireEvent.click(copyBtn); });
+    // After clicking, aria-label should change to 'Copied!'
+    expect(screen.getByRole('button', { name: 'Copied!' })).toBeInTheDocument();
+    // After 2 seconds, reverts to 'Copy command'
+    await act(async () => { vi.advanceTimersByTime(2000); });
+    expect(screen.getByRole('button', { name: 'Copy command' })).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

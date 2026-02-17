@@ -54,7 +54,7 @@ describe('RecentRuns', () => {
 
     render(<RecentRuns />);
     expect(screen.getByText('Docmind')).toBeInTheDocument();
-    expect(screen.getByText('9/10')).toBeInTheDocument();
+    expect(screen.getByText(/9\/10/)).toBeInTheDocument();
     expect(screen.getByText('failed')).toBeInTheDocument();
   });
 

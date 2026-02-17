@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Terminal, Info } from 'lucide-react';
+import { X, Play, Terminal, Info, Copy, Check } from 'lucide-react';
 import type { Project } from '@/store/use-dashboard-store';
 
 interface RunTestsDialogProps {
@@ -18,10 +18,20 @@ const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),textarea
 export function RunTestsDialog({ project, open, onClose, onTriggered, triggerRef }: RunTestsDialogProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [branch, setBranch] = useState('main');
+  const [copied, setCopied] = useState(false);
 
   const tagStr = selectedTags.length > 0 ? selectedTags.join(' and ') : '';
   const branchStr = branch && branch !== 'main' ? ` BRANCH="${branch}"` : '';
   const cmdPreview = `make ${project.makeTarget}${tagStr ? ` TAGS="${tagStr}"` : ''}${branchStr}`;
+
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(cmdPreview).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {
+      // Fallback: silently ignore if clipboard API unavailable
+    });
+  }, [cmdPreview]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -156,9 +166,21 @@ export function RunTestsDialog({ project, open, onClose, onTriggered, triggerRef
 
             {/* Command Preview */}
             <div className="mb-5 bg-background border border-card-border rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-1">
-                <Terminal className="w-3.5 h-3.5 text-muted" />
-                <span className="text-xs text-muted">Run locally</span>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <Terminal className="w-3.5 h-3.5 text-muted" />
+                  <span className="text-xs text-muted">Run locally</span>
+                </div>
+                <button
+                  aria-label={copied ? 'Copied!' : 'Copy command'}
+                  onClick={handleCopy}
+                  className="p-1 rounded hover:bg-card-border/50 transition-colors text-muted hover:text-accent"
+                >
+                  {copied
+                    ? <Check className="w-4 h-4 text-green-400" />
+                    : <Copy className="w-4 h-4" />
+                  }
+                </button>
               </div>
               <code className="text-sm text-accent font-mono">{cmdPreview}</code>
             </div>
