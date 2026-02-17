@@ -19,8 +19,8 @@ test.describe('Project Detail Page - Run history and content', () => {
     await projectLink.click();
     await expect(page).toHaveURL(/\/project\//, { timeout: 10000 });
 
-    // Then: the project name should appear on the detail page
-    await expect(page.getByText(projectName)).toBeVisible({ timeout: 15000 });
+    // Then: the project name should appear on the detail page (use heading role to avoid strict mode violation)
+    await expect(page.getByRole('heading', { name: projectName })).toBeVisible({ timeout: 15000 });
   });
 
   test('should show a back link to the dashboard', async ({ page }) => {

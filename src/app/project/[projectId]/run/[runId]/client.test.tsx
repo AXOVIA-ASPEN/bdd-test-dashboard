@@ -103,7 +103,11 @@ describe('RunClient', () => {
     });
     expect(screen.getAllByText('passed').length).toBeGreaterThan(0);
     expect(screen.getByText('Login Feature')).toBeInTheDocument();
-    expect(screen.getByText('Valid login')).toBeInTheDocument();
+    // Expand the feature accordion to see scenarios
+    fireEvent.click(screen.getByText('Login Feature'));
+    await waitFor(() => {
+      expect(screen.getByText('Valid login')).toBeInTheDocument();
+    });
   });
 
   it('renders failed steps with error messages', async () => {
@@ -146,8 +150,11 @@ describe('RunClient', () => {
     await waitFor(() => {
       expect(screen.getByText('Broken Feature')).toBeInTheDocument();
     });
-    // Error should be truncated, show "Show more" button
-    expect(screen.getByText('Show more')).toBeInTheDocument();
+    // Expand the feature accordion to see scenarios and error block
+    fireEvent.click(screen.getByText('Broken Feature'));
+    await waitFor(() => {
+      expect(screen.getByText('Show more')).toBeInTheDocument();
+    });
     fireEvent.click(screen.getByText('Show more'));
     expect(screen.getByText('Show less')).toBeInTheDocument();
   });

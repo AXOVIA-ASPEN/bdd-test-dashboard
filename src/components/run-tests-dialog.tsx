@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Terminal, Info } from 'lucide-react';
 import type { Project } from '@/store/use-dashboard-store';
@@ -9,9 +9,13 @@ interface RunTestsDialogProps {
   open: boolean;
   onClose: () => void;
   onTriggered: (runId: string) => void;
+  /** Ref to the element that triggered the dialog — focus returns here on close */
+  triggerRef?: React.RefObject<HTMLElement | null>;
 }
 
-export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTestsDialogProps) {
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+export function RunTestsDialog({ project, open, onClose, onTriggered, triggerRef }: RunTestsDialogProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [branch, setBranch] = useState('main');
 
@@ -28,6 +32,51 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
   // Suppress unused-var lint — kept so callers don't need changes
   void onTriggered;
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Close on Escape
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+    }
+    // Focus trap
+    if (e.key === 'Tab' && dialogRef.current) {
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+  }, [onClose]);
+
+  // Attach keydown listener and auto-focus on open
+  useEffect(() => {
+    if (!open) return;
+    document.addEventListener('keydown', handleKeyDown);
+    // Focus first focusable element after animation frame
+    requestAnimationFrame(() => {
+      if (dialogRef.current) {
+        const first = dialogRef.current.querySelector<HTMLElement>(FOCUSABLE);
+        first?.focus();
+      }
+    });
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, handleKeyDown]);
+
+  // Return focus to trigger on close
+  const prevOpen = useRef(open);
+  useEffect(() => {
+    if (prevOpen.current && !open) {
+      triggerRef?.current?.focus();
+    }
+    prevOpen.current = open;
+  }, [open, triggerRef]);
+
   return (
     <AnimatePresence>
       {open && (
@@ -39,6 +88,10 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
           onClick={onClose}
         >
           <motion.div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="run-tests-dialog-title"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -48,7 +101,7 @@ export function RunTestsDialog({ project, open, onClose, onTriggered }: RunTests
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <Play className="w-5 h-5 text-accent" />
-                <h3 className="text-lg font-semibold">Run Tests — {project.name}</h3>
+                <h3 id="run-tests-dialog-title" className="text-lg font-semibold">Run Tests — {project.name}</h3>
               </div>
               <button onClick={onClose} className="p-1 rounded hover:bg-card-border/50">
                 <X className="w-5 h-5" />
