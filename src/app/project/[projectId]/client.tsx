@@ -25,6 +25,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [branchFilter, setBranchFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
     document.title = project ? `${project.name} | BDD Dashboard` : 'BDD Dashboard';
@@ -133,7 +134,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted">Filters</span>
               {(statusFilter !== 'all' || branchFilter) && (
-                <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); }} className="text-xs text-accent hover:underline">Clear all</button>
+                <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); setVisibleCount(10); }} className="text-xs text-accent hover:underline">Clear all</button>
               )}
             </div>
             <div>
@@ -144,7 +145,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
                     key={s}
                     role="radio"
                     aria-checked={statusFilter === s}
-                    onClick={() => setStatusFilter(s)}
+                    onClick={() => { setStatusFilter(s); setVisibleCount(10); }}
                     className={'px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (statusFilter === s ? 'bg-accent/20 border-accent/40 text-accent' : 'border-card-border text-muted hover:text-foreground')}
                   >
                     {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -159,7 +160,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
                 <select
                   id="branch-filter"
                   value={branchFilter}
-                  onChange={e => setBranchFilter(e.target.value)}
+                  onChange={e => { setBranchFilter(e.target.value); setVisibleCount(10); }}
                   className="w-full pl-8 pr-3 py-1.5 bg-transparent border border-card-border rounded-lg text-sm focus:outline-none focus:border-accent/50"
                 >
                   <option value="">All branches</option>
@@ -182,29 +183,50 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
               )}
             </div>
           )}
-          {runs.map((run) => {
+          {runs.slice(0, visibleCount).map((run, index) => {
             const overallStatus = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
             return (
-              <Link
+              <motion.div
                 key={run.id}
-                href={'/project/' + projectId + '/run/' + run.id + '/'}
-                className="flex items-center justify-between px-5 py-3 hover:bg-card-border/30 transition-colors"
+                initial={index >= visibleCount - 10 && visibleCount > 10 ? { opacity: 0, y: 8 } : false}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: index >= visibleCount - 10 && visibleCount > 10 ? (index - (visibleCount - 10)) * 0.03 : 0 }}
               >
-                <div>
-                  <p className="text-sm font-medium">{formatDate(run.timestamp)} at {formatTime(run.timestamp)}</p>
-                  <p className="text-xs text-muted">
-                    {run.environment && (run.environment + ' · ')}{run.branch} · {formatDuration(run.duration)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-muted">{run.summary?.passed ?? 0}/{run.summary?.total ?? 0}</span>
-                  <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(overallStatus)}>{overallStatus}</span>
-                  <ChevronRight className="w-4 h-4 text-muted" />
-                </div>
-              </Link>
+                <Link
+                  href={'/project/' + projectId + '/run/' + run.id + '/'}
+                  className="flex items-center justify-between px-5 py-3 hover:bg-card-border/30 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">{formatDate(run.timestamp)} at {formatTime(run.timestamp)}</p>
+                    <p className="text-xs text-muted">
+                      {run.environment && (run.environment + ' · ')}{run.branch} · {formatDuration(run.duration)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted">{run.summary?.passed ?? 0}/{run.summary?.total ?? 0}</span>
+                    <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(overallStatus)}>{overallStatus}</span>
+                    <ChevronRight className="w-4 h-4 text-muted" />
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
         </div>
+        {runs.length > 0 && (
+          <div className="flex items-center justify-between mt-3 px-1">
+            <p className="text-xs text-muted">
+              Showing {Math.min(visibleCount, runs.length)} of {runs.length} runs
+            </p>
+            {visibleCount < runs.length && (
+              <button
+                onClick={() => setVisibleCount(c => c + 10)}
+                className="text-sm text-accent hover:text-accent/80 font-medium transition-colors"
+              >
+                Show More
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
