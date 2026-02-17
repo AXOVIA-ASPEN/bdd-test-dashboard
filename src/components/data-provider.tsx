@@ -43,6 +43,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const projects = snapshot.docs.map(d => ({ id: d.id, ...sanitize(d.data()) } as unknown as Project));
         useDashboardStore.getState().setProjects(projects);
         useDashboardStore.getState().setError(null);
+        useDashboardStore.getState().setConnected(true);
         useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
         projectsReady = true;
         checkInitialLoad();
@@ -51,6 +52,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         console.error('Firestore projects listener error:', err);
         const message = err instanceof Error ? err.message : 'Failed to load projects';
         useDashboardStore.getState().setError(message);
+        useDashboardStore.getState().setConnected(false);
         projectsReady = true;
         checkInitialLoad();
       }
@@ -63,12 +65,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       (snapshot) => {
         const runs = snapshot.docs.map(d => ({ id: d.id, ...sanitize(d.data()) } as unknown as TestRun));
         useDashboardStore.getState().setRuns(runs);
+        useDashboardStore.getState().setConnected(true);
         useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
         runsReady = true;
         checkInitialLoad();
       },
       (err) => {
         console.error('Firestore runs listener error:', err);
+        useDashboardStore.getState().setConnected(false);
         // Fallback: try without ordering
         const fallbackUnsub = onSnapshot(
           collection(db, 'runs'),

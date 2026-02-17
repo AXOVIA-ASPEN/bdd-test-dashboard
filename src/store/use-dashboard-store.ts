@@ -61,6 +61,8 @@ interface DashboardState {
   loading: boolean;
   error: string | null;
   lastFetchedAt: string | null;
+  connected: boolean;
+  setConnected: (val: boolean) => void;
   theme: Theme;
   toggleTheme: () => void;
   setProjects: (projects: Project[]) => void;
@@ -82,6 +84,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   loading: true,
   error: null,
   lastFetchedAt: null,
+  connected: true,
+  setConnected: (val) => set({ connected: val }),
   theme: (() => { try { return (localStorage.getItem('bdd-theme') as Theme) || 'dark'; } catch { return 'dark' as Theme; } })(),
   toggleTheme: () => set(s => {
     const next = s.theme === 'dark' ? 'light' : 'dark';
