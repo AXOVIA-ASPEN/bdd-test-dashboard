@@ -56,18 +56,23 @@ describe('announceDebounced', () => {
     document.getElementById('announcer')?.remove();
   });
 
-  it('debounces rapid calls', async () => {
+  it('debounces rapid calls', () => {
+    // Mock rAF to execute synchronously so fake timers work end-to-end
+    const rafSpy = vi.spyOn(global, 'requestAnimationFrame').mockImplementation((cb) => {
+      cb(0);
+      return 0;
+    });
+
     announceDebounced('first', 500);
     announceDebounced('second', 500);
     announceDebounced('third', 500);
 
     vi.advanceTimersByTime(500);
 
-    // Need rAF to fire too
-    await new Promise(r => requestAnimationFrame(r));
-
     const el = document.getElementById('announcer')!;
     expect(el.textContent).toBe('third');
+
+    rafSpy.mockRestore();
   });
 
   it('uses default 1000ms delay', () => {

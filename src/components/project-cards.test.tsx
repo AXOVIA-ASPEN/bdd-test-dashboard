@@ -90,12 +90,12 @@ describe('ProjectCards', () => {
     expect(link).toHaveAttribute('href', '/project/p1/');
   });
 
-  it('shows 0% rate when total is 0', () => {
+  it('shows 0% rate label when total is 0', () => {
     mockStore.projects = [project('p1', 'Alpha')];
     mockStore.runs = [{ ...run('p1', 0, 0, 0), summary: { passed: 0, failed: 0, skipped: 0, total: 0 } }];
     render(<ProjectCards />);
-    const bar = document.querySelector('[style*="width: 0%"]');
-    expect(bar).toBeInTheDocument();
+    // When all counts are 0 the segments are filtered out, but the rate label (0%) should still show
+    expect(screen.getByText('0%')).toBeInTheDocument();
   });
 
   it('renders the heading', () => {
