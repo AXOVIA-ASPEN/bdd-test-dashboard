@@ -34,9 +34,9 @@ describe('TrendChart', () => {
     mockStore.runs = [];
   });
 
-  it('renders nothing when no runs', () => {
-    const { container } = render(<TrendChart />);
-    expect(container.innerHTML).toBe('');
+  it('renders empty state when no runs', () => {
+    render(<TrendChart />);
+    expect(screen.getByText(/No test run data/)).toBeInTheDocument();
   });
 
   it('renders chart with data when runs exist within 14 days', () => {
@@ -73,10 +73,10 @@ describe('TrendChart', () => {
     expect(screen.getByText('75%')).toBeInTheDocument();
   });
 
-  it('ignores runs older than 14 days', () => {
+  it('shows empty state for runs older than 14 days', () => {
     mockStore.runs = [makeRun(20, 10, 0)];
-    const { container } = render(<TrendChart />);
-    expect(container.innerHTML).toBe('');
+    render(<TrendChart />);
+    expect(screen.getByText(/No test run data/)).toBeInTheDocument();
   });
 
   it('shows 0% when total is 0 for a day', () => {
