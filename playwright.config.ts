@@ -1,14 +1,24 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
-  timeout: 30000,
+  timeout: 30_000,
+  expect: { timeout: 10_000 },
+  fullyParallel: false,
   retries: 1,
+  workers: 1,
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: 'https://silverline-bdd-test-dashboard.web.app',
     headless: true,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } },
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
 });

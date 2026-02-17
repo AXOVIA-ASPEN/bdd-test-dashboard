@@ -19,6 +19,7 @@ vi.mock('next/link', () => ({
 vi.mock('@/lib/utils', () => ({
   formatDate: (ts: string) => '2026-01-15',
   formatTime: (ts: string) => '10:30',
+  formatDuration: (ms: number) => `${ms}ms`,
   statusBg: (status: string) => `bg-${status}`,
 }));
 
@@ -98,5 +99,38 @@ describe('RecentRuns', () => {
     render(<RecentRuns />);
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', '/project/p1/run/r1/');
+  });
+
+  it('displays duration alongside pass count', () => {
+    mockStore.projects = [
+      { id: 'p1', name: 'Docmind', description: '', color: '#3b82f6', repo: '', makeTarget: '', tags: [] },
+    ];
+    mockStore.runs = [
+      {
+        id: 'r1', projectId: 'p1', timestamp: '2026-01-15T10:30:00Z',
+        branch: 'main', duration: 5000,
+        summary: { passed: 12, failed: 0, skipped: 0, total: 12 },
+      },
+    ];
+
+    render(<RecentRuns />);
+    expect(screen.getByText(/12\/12/)).toBeInTheDocument();
+    expect(screen.getByText(/5000ms/)).toBeInTheDocument();
+  });
+
+  it('handles missing duration gracefully', () => {
+    mockStore.projects = [
+      { id: 'p1', name: 'P1', description: '', color: '#fff', repo: '', makeTarget: '', tags: [] },
+    ];
+    mockStore.runs = [
+      {
+        id: 'r1', projectId: 'p1', timestamp: '2026-01-15T10:30:00Z',
+        branch: 'main',
+        summary: { passed: 3, failed: 0, skipped: 0, total: 3 },
+      },
+    ];
+
+    render(<RecentRuns />);
+    expect(screen.getByText(/3\/3/)).toBeInTheDocument();
   });
 });

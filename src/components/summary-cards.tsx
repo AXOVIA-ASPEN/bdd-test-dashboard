@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-import { Activity, CheckCircle2, XCircle, SkipForward } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, SkipForward, FolderPlus } from 'lucide-react';
 import { Skeleton } from './skeleton';
 
 const cardDefs = [
@@ -75,6 +75,21 @@ export function SummaryCards() {
           </div>
         ))}
       </div>
+    );
+  }
+
+  if (projects.length === 0 && runs.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="col-span-full bg-card border border-card-border rounded-xl p-8 flex flex-col items-center justify-center gap-3 text-center"
+      >
+        <FolderPlus className="w-10 h-10 text-muted opacity-50" />
+        <p className="text-lg font-semibold text-foreground">No projects yet</p>
+        <p className="text-sm text-muted">Add a project to start tracking test results.</p>
+      </motion.div>
     );
   }
 

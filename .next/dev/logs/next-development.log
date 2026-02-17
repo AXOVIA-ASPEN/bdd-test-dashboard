@@ -1,0 +1,4 @@
+[00:00:01.931] Server  LOG     ✓ Ready in 1290ms
+[00:00:10.214] Server  LOG     ○ Compiling /project/[projectId] ...
+[00:00:21.083] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:21.619] Browser ERROR   The result of getServerSnapshot should be cached to avoid an infinite loop

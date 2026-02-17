@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-import { formatDate, formatTime, statusBg } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from './skeleton';
 import { ChevronDown } from 'lucide-react';
@@ -117,7 +117,10 @@ export function RecentRuns() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted">{run.summary?.passed ?? 0}/{run.summary?.total ?? 0}</span>
+                    <span className="text-xs text-muted">
+                      {run.summary?.passed ?? 0}/{run.summary?.total ?? 0}
+                      {run.duration != null && ` · ${formatDuration(run.duration)}`}
+                    </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full border ${statusBg(overallStatus)}`}>
                       {overallStatus}
                     </span>

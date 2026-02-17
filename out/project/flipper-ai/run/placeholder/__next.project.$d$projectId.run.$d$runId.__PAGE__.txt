@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[86983,["/_next/static/chunks/a70d2f98f5539d7e.js","/_next/static/chunks/27ce953b91dd9e56.js","/_next/static/chunks/68f9e8f7e80d2f55.js","/_next/static/chunks/a736380da515aba9.js","/_next/static/chunks/282ce66379981327.js"],"default"]
+3:I[94215,["/_next/static/chunks/11343585837cd9ae.js","/_next/static/chunks/6aa1366490746e22.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"buildId":"xEwfwGB7QzhkfH5ME35GY","rsc":["$","$1","c",{"children":[["$","$L2",null,{"projectId":"flipper-ai","runId":"placeholder"}],[["$","script","script-0",{"src":"/_next/static/chunks/a736380da515aba9.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/282ce66379981327.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+5:null

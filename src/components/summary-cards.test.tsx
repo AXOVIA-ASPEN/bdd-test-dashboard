@@ -86,4 +86,29 @@ describe('SummaryCards', () => {
     expect(screen.getByText('10')).toBeTruthy();
     expect(screen.getByText('100%')).toBeTruthy();
   });
+
+  it('shows empty state when no projects and no runs exist', () => {
+    useDashboardStore.setState({ projects: [], runs: [], loading: false });
+    render(<SummaryCards />);
+    expect(screen.getByText('No projects yet')).toBeTruthy();
+    expect(screen.getByText('Add a project to start tracking test results.')).toBeTruthy();
+    // Normal metric cards should NOT be visible
+    expect(screen.queryByText('Total Tests')).toBeNull();
+    expect(screen.queryByText('Pass Rate')).toBeNull();
+  });
+
+  it('shows 4 metric cards when projects exist but no runs', () => {
+    useDashboardStore.setState({
+      projects: [
+        { id: 'p1', name: 'P1', description: '', color: '#f00', repo: '', makeTarget: '', tags: [] },
+      ],
+      runs: [],
+      loading: false,
+    });
+    render(<SummaryCards />);
+    // Projects exist, so show normal cards (all zeros)
+    expect(screen.getByText('Total Tests')).toBeTruthy();
+    expect(screen.getByText('Pass Rate')).toBeTruthy();
+    expect(screen.queryByText('No projects yet')).toBeNull();
+  });
 });
