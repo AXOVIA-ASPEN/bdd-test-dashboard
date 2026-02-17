@@ -72,7 +72,7 @@ export function ProjectCards() {
           {filter && (
             <button
               onClick={() => setFilter('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:rounded"
             >
               <X className="w-4 h-4" />
             </button>
@@ -122,7 +122,7 @@ export function ProjectCards() {
             >
               <Link
                 href={`/project/${p.id}/`}
-                className="block bg-card border border-card-border rounded-xl p-5 hover:border-accent/50 transition-colors group"
+                className="block bg-card border border-card-border rounded-xl p-5 hover:border-accent/50 transition-colors group focus-card focus-visible:outline-none"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>

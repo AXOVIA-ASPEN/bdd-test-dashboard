@@ -101,7 +101,7 @@ self.__SERVER_FILES_MANIFEST={
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "/home/ubuntu/.openclaw/workspace",
+    "outputFileTracingRoot": "/home/ubuntu/.openclaw/workspace/projects/bdd-test-dashboard",
     "cacheComponents": false,
     "cacheLife": {
       "default": {
@@ -294,12 +294,12 @@ self.__SERVER_FILES_MANIFEST={
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.ts",
     "turbopack": {
-      "root": "/home/ubuntu/.openclaw/workspace"
+      "root": "/home/ubuntu/.openclaw/workspace/projects/bdd-test-dashboard"
     },
     "distDirRoot": ".next"
   },
   "appDir": "/home/ubuntu/.openclaw/workspace/projects/bdd-test-dashboard",
-  "relativeAppDir": "projects/bdd-test-dashboard",
+  "relativeAppDir": "",
   "files": [
     ".next/routes-manifest.json",
     ".next/server/pages-manifest.json",

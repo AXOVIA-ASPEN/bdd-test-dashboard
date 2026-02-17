@@ -76,7 +76,7 @@ export function RecentRuns() {
             key={p.key}
             onClick={() => { setStatusFilter(p.key); setVisibleCount(PAGE_SIZE); }}
             className={
-              'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium ' +
+              'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ' +
               (statusFilter === p.key ? p.activeBg + ' ' + p.color : 'border-card-border text-muted hover:border-muted')
             }
           >
@@ -103,7 +103,7 @@ export function RecentRuns() {
               >
                 <Link
                   href={`/project/${run.projectId}/run/${run.id}/`}
-                  className="flex items-center justify-between px-5 py-3 hover:bg-card-border/30 transition-colors"
+                  className="flex items-center justify-between px-5 py-3 hover:bg-card-border/30 transition-colors focus-ring-inset focus-visible:outline-none"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: proj?.color }} />
@@ -141,7 +141,7 @@ export function RecentRuns() {
           >
             <button
               onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
-              className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-card-border/30"
+              className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-card-border/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               <ChevronDown className="w-4 h-4" />
               Show More ({remaining} remaining)
