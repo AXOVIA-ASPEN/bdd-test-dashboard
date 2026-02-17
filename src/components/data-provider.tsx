@@ -7,9 +7,11 @@ import type { Project, TestRun } from '@/store/use-dashboard-store';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const retryCount = useDashboardStore(s => s.retryCount);
   const initialLoad = useRef(true);
 
   useEffect(() => {
+    initialLoad.current = true;
     const store = useDashboardStore.getState();
     store.setLoading(true);
 
@@ -95,7 +97,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       unsubRuns();
       if (unsubRunsFallback) unsubRunsFallback();
     };
-  }, []);
+  }, [retryCount]);
 
   return <>{children}</>;
 }
