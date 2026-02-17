@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
@@ -206,8 +206,29 @@ function FeatureSections({ features, statusFilter, setStatusFilter }: { features
   </>);
 }
 
+/** Derive previous and next runs (chronologically) for a given project and runId */
+export function deriveAdjacentRuns(
+  runs: TestRun[],
+  projectId: string,
+  runId: string,
+): { prevRun: TestRun | null; nextRun: TestRun | null } {
+  const projectRuns = runs
+    .filter(r => r.projectId === projectId)
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  const idx = projectRuns.findIndex(r => r.id === runId);
+  if (idx === -1) return { prevRun: null, nextRun: null };
+
+  return {
+    prevRun: idx > 0 ? projectRuns[idx - 1] : null,
+    nextRun: idx < projectRuns.length - 1 ? projectRuns[idx + 1] : null,
+  };
+}
+
 export default function RunClient({ projectId, runId }: { projectId: string; runId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
+  const allRuns = useDashboardStore(s => s.runs ?? []);
+  const { prevRun, nextRun } = deriveAdjacentRuns(allRuns, projectId, runId);
   const [run, setRun] = useState<TestRun | null>(null);
   const [loadingRun, setLoadingRun] = useState(true);
   const [errorRun, setErrorRun] = useState<string | null>(null);
@@ -332,6 +353,51 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
           { label: run.timestamp ? 'Run ' + new Date(run.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Run Details' },
         ]}
       />
+
+      {/* Previous / Next run navigation */}
+      <div className="flex items-center gap-2">
+        {prevRun ? (
+          <Link
+            href={'/project/' + projectId + '/run/' + prevRun.id + '/'}
+            title={'Previous run: ' + new Date(prevRun.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            aria-label="Previous run"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-card-border text-muted hover:border-accent hover:text-accent transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Prev
+          </Link>
+        ) : (
+          <span
+            aria-disabled="true"
+            aria-label="No previous run"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-card-border text-muted/40 cursor-not-allowed select-none"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Prev
+          </span>
+        )}
+
+        {nextRun ? (
+          <Link
+            href={'/project/' + projectId + '/run/' + nextRun.id + '/'}
+            title={'Next run: ' + new Date(nextRun.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            aria-label="Next run"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-card-border text-muted hover:border-accent hover:text-accent transition-colors"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        ) : (
+          <span
+            aria-disabled="true"
+            aria-label="No next run"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg border border-card-border text-muted/40 cursor-not-allowed select-none"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </span>
+        )}
+      </div>
 
       <div className="flex items-center gap-3">
         <div>

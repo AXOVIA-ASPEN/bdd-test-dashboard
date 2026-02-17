@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import RunClient from './client';
+import RunClient, { deriveAdjacentRuns } from './client';
+import type { TestRun } from '@/store/use-dashboard-store';
 
 const mockProject = { id: 'test', name: 'Test Project', color: '#ff0000' };
 
@@ -301,5 +302,84 @@ describe('RunClient', () => {
     await waitFor(() => {
       expect(screen.getByText('Live')).toBeInTheDocument();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Unit tests for deriveAdjacentRuns (pure logic, no DOM)
+// ---------------------------------------------------------------------------
+
+function makeRun(id: string, projectId: string, timestamp: string): TestRun {
+  return {
+    id,
+    projectId,
+    timestamp,
+    branch: 'main',
+    duration: 0,
+    summary: { passed: 0, failed: 0, skipped: 0, total: 0 },
+  };
+}
+
+describe('deriveAdjacentRuns', () => {
+  const runs: TestRun[] = [
+    makeRun('r1', 'proj-a', '2026-02-10T10:00:00Z'),
+    makeRun('r2', 'proj-a', '2026-02-11T10:00:00Z'),
+    makeRun('r3', 'proj-a', '2026-02-12T10:00:00Z'),
+    makeRun('r4', 'proj-b', '2026-02-13T10:00:00Z'), // different project
+  ];
+
+  it('returns null for both when runId is not found', () => {
+    const { prevRun, nextRun } = deriveAdjacentRuns(runs, 'proj-a', 'unknown-id');
+    expect(prevRun).toBeNull();
+    expect(nextRun).toBeNull();
+  });
+
+  it('returns null prev and correct next for the earliest run', () => {
+    const { prevRun, nextRun } = deriveAdjacentRuns(runs, 'proj-a', 'r1');
+    expect(prevRun).toBeNull();
+    expect(nextRun?.id).toBe('r2');
+  });
+
+  it('returns correct prev and next for a middle run', () => {
+    const { prevRun, nextRun } = deriveAdjacentRuns(runs, 'proj-a', 'r2');
+    expect(prevRun?.id).toBe('r1');
+    expect(nextRun?.id).toBe('r3');
+  });
+
+  it('returns correct prev and null next for the latest run', () => {
+    const { prevRun, nextRun } = deriveAdjacentRuns(runs, 'proj-a', 'r3');
+    expect(prevRun?.id).toBe('r2');
+    expect(nextRun).toBeNull();
+  });
+
+  it('filters by projectId and ignores runs from other projects', () => {
+    // r4 belongs to proj-b; should not appear for proj-a lookups
+    const { prevRun, nextRun } = deriveAdjacentRuns(runs, 'proj-a', 'r3');
+    expect(prevRun?.id).toBe('r2');
+    expect(nextRun).toBeNull(); // r4 is in proj-b, so no next
+  });
+
+  it('returns both null when project has only one run', () => {
+    const singleRun = [makeRun('r4', 'proj-b', '2026-02-13T10:00:00Z')];
+    const { prevRun, nextRun } = deriveAdjacentRuns(singleRun, 'proj-b', 'r4');
+    expect(prevRun).toBeNull();
+    expect(nextRun).toBeNull();
+  });
+
+  it('returns both null when runs array is empty', () => {
+    const { prevRun, nextRun } = deriveAdjacentRuns([], 'proj-a', 'r1');
+    expect(prevRun).toBeNull();
+    expect(nextRun).toBeNull();
+  });
+
+  it('sorts chronologically regardless of input order', () => {
+    const unordered: TestRun[] = [
+      makeRun('rC', 'proj-x', '2026-02-15T10:00:00Z'),
+      makeRun('rA', 'proj-x', '2026-02-13T10:00:00Z'),
+      makeRun('rB', 'proj-x', '2026-02-14T10:00:00Z'),
+    ];
+    const { prevRun, nextRun } = deriveAdjacentRuns(unordered, 'proj-x', 'rB');
+    expect(prevRun?.id).toBe('rA');
+    expect(nextRun?.id).toBe('rC');
   });
 });

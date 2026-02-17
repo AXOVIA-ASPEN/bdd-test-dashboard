@@ -103,4 +103,54 @@ describe('ProjectCards', () => {
     render(<ProjectCards />);
     expect(screen.getByText('Projects')).toBeInTheDocument();
   });
+
+  // ── Health badge state tests ─────────────────────────────────────────────
+
+  it('shows ✅ Passing badge when all tests passed and none skipped', () => {
+    mockStore.projects = [project('p1', 'Alpha')];
+    mockStore.runs = [run('p1', 10, 0, 0)];
+    render(<ProjectCards />);
+    expect(screen.getByText('Passing')).toBeInTheDocument();
+  });
+
+  it('shows ✅ Passing badge when tests passed with some skipped (not Flaky)', () => {
+    mockStore.projects = [project('p1', 'Alpha')];
+    // 50 passed, 0 failed, 5 skipped — all *executed* tests passed
+    mockStore.runs = [run('p1', 50, 0, 5)];
+    render(<ProjectCards />);
+    expect(screen.getByText('Passing')).toBeInTheDocument();
+    expect(screen.queryByText('Flaky')).not.toBeInTheDocument();
+  });
+
+  it('shows ⏭️ All Skipped badge when every test is skipped', () => {
+    mockStore.projects = [project('p1', 'Alpha')];
+    mockStore.runs = [run('p1', 0, 0, 8)];
+    render(<ProjectCards />);
+    expect(screen.getByText('All Skipped')).toBeInTheDocument();
+  });
+
+  it('shows ❌ Failing badge when there are failures, regardless of skipped count', () => {
+    mockStore.projects = [project('p1', 'Alpha')];
+    // 5 passed, 2 failed, 3 skipped — failures dominate
+    mockStore.runs = [run('p1', 5, 2, 3)];
+    render(<ProjectCards />);
+    expect(screen.getByText('Failing')).toBeInTheDocument();
+    expect(screen.queryByText('Passing')).not.toBeInTheDocument();
+    expect(screen.queryByText('Flaky')).not.toBeInTheDocument();
+  });
+
+  it('shows ❌ Failing badge even when skipped count is high', () => {
+    mockStore.projects = [project('p1', 'Alpha')];
+    // 0 passed, 1 failed, 99 skipped — still Failing
+    mockStore.runs = [run('p1', 0, 1, 99)];
+    render(<ProjectCards />);
+    expect(screen.getByText('Failing')).toBeInTheDocument();
+  });
+
+  it('shows ⏳ No runs badge when project has no run data', () => {
+    mockStore.projects = [project('p1', 'Alpha')];
+    mockStore.runs = [];
+    render(<ProjectCards />);
+    expect(screen.getByText('No runs')).toBeInTheDocument();
+  });
 });

@@ -97,14 +97,19 @@ export function ProjectCards() {
           const durationData = projectRuns.map(r => r.duration);
 
           // Health badge logic
+          // Skipped tests are intentionally excluded (WIP tags, platform-specific), not flaky.
+          // We only show Failing if there are actual failures. Skipped tests alongside passing
+          // tests still means Passing. Only when ALL tests are skipped do we show All Skipped.
           let healthBadge = { icon: '⏳', label: 'No runs', color: 'bg-gray-500/15 text-gray-500' };
           if (latestRun) {
             const { failed = 0, skipped = 0, passed = 0, total = 0 } = latestRun.summary ?? {};
             if (failed > 0) {
               healthBadge = { icon: '❌', label: 'Failing', color: 'bg-red-500/15 text-red-600 dark:text-red-400' };
-            } else if (skipped > 0) {
-              healthBadge = { icon: '⚠️', label: 'Flaky', color: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400' };
-            } else if (passed === total && total > 0) {
+            } else if (skipped === total && total > 0) {
+              // Every test was skipped — distinct state, not a pass
+              healthBadge = { icon: '⏭️', label: 'All Skipped', color: 'bg-gray-400/15 text-gray-500 dark:text-gray-400' };
+            } else if (passed > 0 && failed === 0) {
+              // All executed tests passed (some may be skipped — that's fine)
               healthBadge = { icon: '✅', label: 'Passing', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' };
             }
           }

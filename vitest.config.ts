@@ -12,7 +12,6 @@ export default defineConfig({
     alias: {
       '@': path.resolve(workspaceRoot, 'src'),
     },
-    // Tell vite to look in the project node_modules for resolution
   },
   server: {
     fs: {
@@ -22,16 +21,29 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: [path.resolve(workspaceRoot, 'src/__tests__/setup.ts')],
+    setupFiles: [
+      path.resolve(projectRoot, 'src/__tests__/setup.ts'),
+      path.resolve(workspaceRoot, 'src/__tests__/setup.ts'),
+    ],
     include: [path.resolve(workspaceRoot, 'src/**/*.test.{ts,tsx}')],
     coverage: {
       provider: 'v8',
-      include: [path.resolve(workspaceRoot, 'src/**/*.{ts,tsx}')],
+      reportsDirectory: path.resolve(projectRoot, 'coverage'),
+      reporter: ['text', 'lcov', 'html'],
+      // Use relative paths from projectRoot so globs resolve correctly
+      include: ['../../src/**/*.{ts,tsx}'],
       exclude: [
-        path.resolve(workspaceRoot, 'src/__tests__/**'),
-        path.resolve(workspaceRoot, 'src/app/layout.tsx'),
-        path.resolve(workspaceRoot, 'src/lib/firebase.ts'),
+        '../../src/__tests__/**',
+        '../../src/**/*.test.{ts,tsx}',
+        '../../src/app/layout.tsx',
+        '../../src/lib/firebase.ts',
       ],
+      thresholds: {
+        statements: 80,
+        branches: 75,
+        functions: 80,
+        lines: 80,
+      },
     },
   },
 });

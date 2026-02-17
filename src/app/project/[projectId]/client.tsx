@@ -6,13 +6,37 @@ import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { ChevronRight, Filter, Play, Search } from 'lucide-react';
+import { ArrowUpDown, ChevronRight, Filter, Play, Search } from 'lucide-react';
 import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
 
 const STATUS_OPTIONS = ['all', 'passed', 'failed', 'skipped'] as const;
 type StatusFilter = (typeof STATUS_OPTIONS)[number];
+
+type SortBy =
+  | 'date-desc'
+  | 'date-asc'
+  | 'rate-desc'
+  | 'rate-asc'
+  | 'duration-asc'
+  | 'duration-desc';
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'date-desc', label: 'Date (newest first)' },
+  { value: 'date-asc', label: 'Date (oldest first)' },
+  { value: 'rate-desc', label: 'Pass rate (high → low)' },
+  { value: 'rate-asc', label: 'Pass rate (low → high)' },
+  { value: 'duration-asc', label: 'Duration (shortest)' },
+  { value: 'duration-desc', label: 'Duration (longest)' },
+];
+
+function getPassRate(run: { summary?: { passed?: number; total?: number } }): number {
+  const total = run.summary?.total ?? 0;
+  const passed = run.summary?.passed ?? 0;
+  if (total === 0) return 0;
+  return passed / total;
+}
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
@@ -25,6 +49,8 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [branchFilter, setBranchFilter] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showSort, setShowSort] = useState(false);
+  const [sortBy, setSortBy] = useState<SortBy>('date-desc');
   const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
@@ -35,7 +61,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const branches = useMemo(() => [...new Set(projectRuns.map(r => r.branch).filter(Boolean))].sort(), [projectRuns]);
 
   const runs = useMemo(() => {
-    return projectRuns.filter(run => {
+    const filtered = projectRuns.filter(run => {
       if (statusFilter !== 'all') {
         const s = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
         if (s !== statusFilter) return false;
@@ -43,7 +69,26 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
       if (branchFilter && run.branch !== branchFilter) return false;
       return true;
     });
-  }, [projectRuns, statusFilter, branchFilter]);
+
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc':
+          return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+        case 'date-asc':
+          return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+        case 'rate-desc':
+          return getPassRate(b) - getPassRate(a);
+        case 'rate-asc':
+          return getPassRate(a) - getPassRate(b);
+        case 'duration-asc':
+          return (a.duration ?? 0) - (b.duration ?? 0);
+        case 'duration-desc':
+          return (b.duration ?? 0) - (a.duration ?? 0);
+        default:
+          return 0;
+      }
+    });
+  }, [projectRuns, statusFilter, branchFilter, sortBy]);
 
   if (loading) {
     return <ProjectSkeleton />;
@@ -63,6 +108,8 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   }
 
   const latestRun = projectRuns[0];
+  const isFiltered = statusFilter !== 'all' || !!branchFilter;
+  const isSorted = sortBy !== 'date-desc';
 
   return (
     <div className="space-y-6">
@@ -115,25 +162,77 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Run History</h3>
-          <button
-            onClick={() => setShowFilters(f => !f)}
-            aria-label="Toggle filters"
-            aria-expanded={showFilters}
-            className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (showFilters || statusFilter !== 'all' || branchFilter ? 'bg-accent/20 text-accent' : 'bg-card-border/50 text-muted hover:text-foreground')}
-          >
-            <Filter className="w-3.5 h-3.5" />
-            Filter
-            {(statusFilter !== 'all' || branchFilter) && (
-              <span className="ml-1 w-2 h-2 rounded-full bg-accent" />
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Sort button */}
+            <div className="relative">
+              <button
+                onClick={() => { setShowSort(s => !s); setShowFilters(false); }}
+                aria-label="Toggle sort"
+                aria-expanded={showSort}
+                className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (showSort || isSorted ? 'bg-accent/20 text-accent' : 'bg-card-border/50 text-muted hover:text-foreground')}
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                Sort
+                {isSorted && (
+                  <span className="ml-1 w-2 h-2 rounded-full bg-accent" />
+                )}
+              </button>
+
+              {showSort && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-1 z-20 w-52 bg-card border border-card-border rounded-xl shadow-lg overflow-hidden"
+                >
+                  <div className="px-3 py-2 border-b border-card-border flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted">Sort by</span>
+                    {isSorted && (
+                      <button
+                        onClick={() => { setSortBy('date-desc'); setVisibleCount(10); }}
+                        className="text-xs text-accent hover:underline"
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                  {SORT_OPTIONS.map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSortBy(opt.value); setShowSort(false); setVisibleCount(10); }}
+                      className={'w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between ' + (sortBy === opt.value ? 'bg-accent/10 text-accent font-medium' : 'text-foreground hover:bg-card-border/40')}
+                    >
+                      {opt.label}
+                      {sortBy === opt.value && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </div>
+
+            {/* Filter button */}
+            <button
+              onClick={() => { setShowFilters(f => !f); setShowSort(false); }}
+              aria-label="Toggle filters"
+              aria-expanded={showFilters}
+              className={'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (showFilters || isFiltered ? 'bg-accent/20 text-accent' : 'bg-card-border/50 text-muted hover:text-foreground')}
+            >
+              <Filter className="w-3.5 h-3.5" />
+              Filter
+              {isFiltered && (
+                <span className="ml-1 w-2 h-2 rounded-full bg-accent" />
+              )}
+            </button>
+          </div>
         </div>
 
         {showFilters && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mb-4 p-4 bg-card border border-card-border rounded-xl space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted">Filters</span>
-              {(statusFilter !== 'all' || branchFilter) && (
+              {isFiltered && (
                 <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); setVisibleCount(10); }} className="text-xs text-accent hover:underline">Clear all</button>
               )}
             </div>
@@ -173,7 +272,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         <div className="bg-card border border-card-border rounded-xl overflow-hidden divide-y divide-card-border">
           {runs.length === 0 && (
             <div className="px-5 py-8 text-center text-muted text-sm">
-              {(statusFilter !== 'all' || branchFilter) ? (
+              {isFiltered ? (
                 <div className="space-y-2">
                   <p>No runs match the current filters.</p>
                   <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); }} className="text-accent hover:underline text-xs">Clear filters</button>
