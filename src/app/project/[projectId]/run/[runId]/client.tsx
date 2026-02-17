@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react';
 import { useDashboardStore, type TestRun, type Feature } from '@/store/use-dashboard-store';
 import { getDb } from '@/lib/firebase';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, collection, onSnapshot } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ChevronDown, ChevronRight, Clock, GitBranch, Loader2, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
@@ -213,6 +213,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const [errorRun, setErrorRun] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [retryCount, setRetryCount] = useState(0);
+  const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
     if (run && project) {
@@ -225,24 +226,70 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   }, [run, project]);
 
   useEffect(() => {
-    async function loadRunDetail() {
-      setLoadingRun(true);
-      setErrorRun(null);
-      try {
-        const db = getDb();
-        const runDoc = await getDoc(doc(db, 'runs', runId));
-        if (!runDoc.exists()) { setRun(null); setLoadingRun(false); return; }
-        const featuresSnap = await getDocs(collection(db, 'runs', runId, 'features'));
-        const features = featuresSnap.docs.map(d => ({ id: d.id, ...sanitize(d.data()) })) as Feature[];
-        setRun({ id: runDoc.id, ...sanitize(runDoc.data()), features } as TestRun);
-      } catch (err) {
-        console.error('Failed to load run:', err);
-        setErrorRun(err instanceof Error ? err.message : 'An unexpected error occurred while loading run details.');
-      } finally {
-        setLoadingRun(false);
+    if (!runId || runId === '_') { setLoadingRun(false); return; }
+
+    setLoadingRun(true);
+    setErrorRun(null);
+    setIsLive(false);
+
+    const db = getDb();
+
+    // Local state for merging two independent snapshots
+    let latestRunBase: (Omit<TestRun, 'features'> & { id: string }) | null | undefined = undefined;
+    let latestFeatures: Feature[] = [];
+    let runLoaded = false;
+    let featuresLoaded = false;
+
+    const merge = () => {
+      if (!runLoaded || !featuresLoaded) return;
+      setLoadingRun(false);
+      if (latestRunBase === null) {
+        setRun(null);
+        setIsLive(false);
+      } else if (latestRunBase !== undefined) {
+        setRun({ ...latestRunBase, features: latestFeatures } as TestRun);
+        setIsLive(true);
       }
-    }
-    if (runId && runId !== '_') { loadRunDetail(); } else { setLoadingRun(false); }
+    };
+
+    const unsubRun = onSnapshot(
+      doc(db, 'runs', runId),
+      (snap) => {
+        runLoaded = true;
+        if (!snap.exists()) {
+          latestRunBase = null;
+        } else {
+          latestRunBase = { id: snap.id, ...sanitize(snap.data()) } as Omit<TestRun, 'features'> & { id: string };
+        }
+        merge();
+      },
+      (err) => {
+        console.error('Run listener error:', err);
+        setErrorRun(err.message || 'An unexpected error occurred while loading run details.');
+        setLoadingRun(false);
+        setIsLive(false);
+      }
+    );
+
+    const unsubFeatures = onSnapshot(
+      collection(db, 'runs', runId, 'features'),
+      (snap) => {
+        featuresLoaded = true;
+        latestFeatures = snap.docs.map(d => ({ id: d.id, ...sanitize(d.data()) } as Feature));
+        merge();
+      },
+      (err) => {
+        console.error('Features listener error:', err);
+        featuresLoaded = true; // Don't block the UI — show run without features
+        merge();
+      }
+    );
+
+    return () => {
+      unsubRun();
+      unsubFeatures();
+      setIsLive(false);
+    };
   }, [runId, retryCount]);
 
   const handleRetry = () => setRetryCount(c => c + 1);
@@ -288,10 +335,19 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
 
       <div className="flex items-center gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project?.color }} />
             <h2 className="text-2xl font-bold">{project?.name || projectId}</h2>
             <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(overallStatus)}>{overallStatus}</span>
+            {isLive && (
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                </span>
+                Live
+              </span>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted mt-1">
             <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{formatDate(run.timestamp)} at {formatTime(run.timestamp)}</span>
