@@ -1,8 +1,9 @@
 'use client';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Search, X } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { Sparkline } from './sparkline';
 import { Skeleton } from './skeleton';
@@ -11,6 +12,7 @@ export function ProjectCards() {
   const loading = useDashboardStore(s => s.loading);
   const projects = useDashboardStore(s => s.projects);
   const runs = useDashboardStore(s => s.runs);
+  const [filter, setFilter] = useState('');
 
   if (loading) {
     return (
@@ -49,11 +51,35 @@ export function ProjectCards() {
 
   if (projects.length === 0) return null;
 
+  const filtered = filter
+    ? projects.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()))
+    : projects;
+
   return (
     <div>
-      <h3 className="text-lg font-semibold mb-4">Projects</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">Projects</h3>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+          <input
+            type="text"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+            placeholder="Filter projects..."
+            className="pl-9 pr-8 py-1.5 text-sm bg-card border border-card-border rounded-lg focus:outline-none focus:border-accent/50 transition-colors w-56"
+          />
+          {filter && (
+            <button
+              onClick={() => setFilter('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-3">
-        {projects.map((p, i) => {
+        {filtered.map((p, i) => {
           const latestRun = runs.find(r => r.projectId === p.id);
           const rate = latestRun?.summary?.total
             ? Math.round((latestRun.summary.passed / latestRun.summary.total) * 100)
