@@ -32,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Header />
               <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {children}
+                <div aria-live="polite" aria-atomic="true" className="sr-only" id="announcer" />
               </main>
             </DataProvider>
           </ThemeProvider>

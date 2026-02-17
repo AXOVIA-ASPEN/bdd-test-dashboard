@@ -5,10 +5,12 @@ import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestor
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import type { Project, TestRun } from '@/store/use-dashboard-store';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
+import { announce, announceDebounced } from '@/lib/announce';
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const retryCount = useDashboardStore(s => s.retryCount);
   const initialLoad = useRef(true);
+  const isRetry = useRef(false);
 
   // Browser online/offline detection
   useEffect(() => {
@@ -27,6 +29,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    isRetry.current = retryCount > 0;
     initialLoad.current = true;
     const store = useDashboardStore.getState();
     store.setLoading(true);
@@ -47,8 +50,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     function checkInitialLoad() {
       if (projectsReady && runsReady && initialLoad.current) {
         initialLoad.current = false;
-        useDashboardStore.getState().setLoading(false);
-        useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
+        const s = useDashboardStore.getState();
+        s.setLoading(false);
+        s.setLastFetchedAt(new Date().toISOString());
+        const pCount = s.projects.length;
+        const rCount = s.runs.length;
+        if (s.error) {
+          announce(`Error loading data: ${s.error}`);
+        } else {
+          announce(isRetry.current
+            ? 'Data refreshed successfully'
+            : `Dashboard loaded. ${pCount} project${pCount !== 1 ? 's' : ''}, ${rCount} test run${rCount !== 1 ? 's' : ''}.`);
+        }
       }
     }
 
@@ -62,6 +75,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         useDashboardStore.getState().setConnected(true);
         useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
         projectsReady = true;
+        if (!initialLoad.current) announceDebounced('Data updated');
         checkInitialLoad();
       },
       (err) => {
@@ -69,6 +83,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const message = err instanceof Error ? err.message : 'Failed to load projects';
         useDashboardStore.getState().setError(message);
         useDashboardStore.getState().setConnected(false);
+        announce(`Error loading data: ${message}`);
         projectsReady = true;
         checkInitialLoad();
       }
@@ -84,6 +99,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         useDashboardStore.getState().setConnected(true);
         useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
         runsReady = true;
+        if (!initialLoad.current) announceDebounced('Data updated');
         checkInitialLoad();
       },
       (err) => {
