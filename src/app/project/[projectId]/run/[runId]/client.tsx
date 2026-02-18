@@ -4,7 +4,7 @@ import { useDashboardStore, type TestRun, type Feature } from '@/store/use-dashb
 import { getDb } from '@/lib/firebase';
 import { doc, collection, onSnapshot } from 'firebase/firestore';
 import { motion } from 'framer-motion';
-import { formatDate, formatTime, formatDuration, statusBg, statusColor } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, statusBg, statusColor, deriveRunStatus } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
 import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
@@ -343,7 +343,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
     return (<div className="text-center py-20 text-muted"><p>Run not found.</p><Link href={'/project/' + projectId + '/'} className="text-accent mt-2 inline-block">Back to project</Link></div>);
   }
 
-  const overallStatus = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+  const overallStatus = deriveRunStatus(run);
 
   return (
     <div className="space-y-6">

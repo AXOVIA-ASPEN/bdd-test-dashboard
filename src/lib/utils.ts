@@ -35,6 +35,13 @@ export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
 }
 
+export function deriveRunStatus(run: { status?: string; summary?: { failed?: number; skipped?: number } }): string {
+  if (run.status) return run.status;
+  if ((run.summary?.failed ?? 0) > 0) return 'failed';
+  if ((run.summary?.skipped ?? 0) > 0) return 'skipped';
+  return 'passed';
+}
+
 export function statusColor(status: string): string {
   switch (status) {
     case 'passed': return 'text-emerald-600 dark:text-emerald-400';
@@ -81,10 +88,7 @@ function escapeCsvValue(value: string | number | undefined | null): string {
 export function generateCsv(runs: CsvRun[], projectName: string): string {
   const headers = ['Run ID', 'Date', 'Time', 'Branch', 'Environment', 'Status', 'Total', 'Passed', 'Failed', 'Skipped', 'Duration'];
   const rows = runs.map(run => {
-    const status = run.status || (
-      (run.summary?.failed ?? 0) > 0 ? 'failed' :
-      (run.summary?.skipped ?? 0) > 0 ? 'skipped' : 'passed'
-    );
+    const status = deriveRunStatus(run);
     return [
       escapeCsvValue(run.id),
       escapeCsvValue(formatDate(run.timestamp)),

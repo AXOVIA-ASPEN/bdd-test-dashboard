@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-import { formatDate, formatTime, formatDuration, statusBg } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, statusBg, deriveRunStatus } from '@/lib/utils';
 import Link from 'next/link';
 import { Skeleton } from './skeleton';
 import { ChevronDown } from 'lucide-react';
@@ -18,8 +18,7 @@ export function RecentRuns() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  const deriveStatus = (run: typeof allRuns[number]) =>
-    run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+  const deriveStatus = (run: typeof allRuns[number]) => deriveRunStatus(run);
 
   const statusCounts = allRuns.reduce(
     (acc, run) => { acc[deriveStatus(run)]++; return acc; },

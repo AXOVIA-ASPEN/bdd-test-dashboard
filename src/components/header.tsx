@@ -4,6 +4,7 @@ import { Moon, Sun, FlaskConical, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 function useRelativeTime(iso: string | null) {
   const [text, setText] = useState<string | null>(null);
@@ -28,6 +29,12 @@ function useRelativeTime(iso: string | null) {
 export function Header() {
   const { theme, toggleTheme, loading, retry, lastFetchedAt } = useDashboardStore();
   const relTime = useRelativeTime(lastFetchedAt);
+
+  // Register global keyboard shortcuts
+  useKeyboardShortcuts([
+    { key: 'r', handler: () => { if (!loading) retry(); } },
+    { key: 't', handler: toggleTheme },
+  ]);
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">

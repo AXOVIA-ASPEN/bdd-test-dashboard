@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
-import { formatDate, formatTime, formatDuration, statusBg, generateCsv, downloadCsv } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, statusBg, generateCsv, downloadCsv, deriveRunStatus } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
@@ -63,7 +63,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const runs = useMemo(() => {
     const filtered = projectRuns.filter(run => {
       if (statusFilter !== 'all') {
-        const s = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+        const s = deriveRunStatus(run);
         if (s !== statusFilter) return false;
       }
       if (branchFilter && run.branch !== branchFilter) return false;
@@ -304,7 +304,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
             </div>
           )}
           {runs.slice(0, visibleCount).map((run, index) => {
-            const overallStatus = run.status || (run.summary?.failed > 0 ? 'failed' : run.summary?.skipped > 0 ? 'skipped' : 'passed');
+            const overallStatus = deriveRunStatus(run);
             return (
               <motion.div
                 key={run.id}
