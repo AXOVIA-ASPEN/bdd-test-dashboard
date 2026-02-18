@@ -11,6 +11,8 @@ import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, 
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useRouter } from 'next/navigation';
 
 function StepError({ error }: { error: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -229,12 +231,19 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const project = useDashboardStore(s => s.getProject(projectId));
   const allRuns = useDashboardStore(s => s.runs ?? []);
   const { prevRun, nextRun } = deriveAdjacentRuns(allRuns, projectId, runId);
+  const router = useRouter();
   const [run, setRun] = useState<TestRun | null>(null);
   const [loadingRun, setLoadingRun] = useState(true);
   const [errorRun, setErrorRun] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [retryCount, setRetryCount] = useState(0);
   const [isLive, setIsLive] = useState(false);
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    { key: 'Backspace', handler: () => router.push(`/project/${projectId}/`) },
+    { key: 'ArrowLeft', alt: true, handler: () => router.push(`/project/${projectId}/`) },
+  ]);
 
   useEffect(() => {
     if (run && project) {

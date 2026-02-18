@@ -21,6 +21,12 @@ vi.mock('@/lib/utils', () => ({
   formatTime: (ts: string) => '10:30',
   formatDuration: (ms: number) => `${ms}ms`,
   statusBg: (status: string) => `bg-${status}`,
+  deriveRunStatus: (run: any) => {
+    if (run.status) return run.status;
+    if ((run.summary?.failed ?? 0) > 0) return 'failed';
+    if ((run.summary?.skipped ?? 0) > 0) return 'skipped';
+    return 'passed';
+  },
 }));
 
 const mockStore: any = {};

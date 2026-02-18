@@ -10,6 +10,8 @@ import { ArrowUpDown, ChevronRight, Download, Filter, Play, Search } from 'lucid
 import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useRouter } from 'next/navigation';
 
 const STATUS_OPTIONS = ['all', 'passed', 'failed', 'skipped'] as const;
 type StatusFilter = (typeof STATUS_OPTIONS)[number];
@@ -45,6 +47,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const loading = useDashboardStore(s => s.loading);
   const error = useDashboardStore(s => s.error);
   const retry = useDashboardStore(s => s.retry);
+  const router = useRouter();
   const [runDialogOpen, setRunDialogOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [branchFilter, setBranchFilter] = useState('');
@@ -52,6 +55,14 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const [showSort, setShowSort] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('date-desc');
   const [visibleCount, setVisibleCount] = useState(10);
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    { key: '/', handler: () => setShowFilters(f => !f) },
+    { key: 'Escape', handler: () => { setShowFilters(false); setShowSort(false); } },
+    { key: 'Backspace', handler: () => router.push('/') },
+    { key: 'ArrowLeft', alt: true, handler: () => router.push('/') },
+  ]);
 
   useEffect(() => {
     document.title = project ? `${project.name} | BDD Dashboard` : 'BDD Dashboard';

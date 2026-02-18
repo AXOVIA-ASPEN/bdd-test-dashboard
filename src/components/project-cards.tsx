@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import Link from 'next/link';
@@ -7,12 +7,19 @@ import { ChevronRight, Search, X } from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
 import { Sparkline } from './sparkline';
 import { Skeleton } from './skeleton';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 
 export function ProjectCards() {
   const loading = useDashboardStore(s => s.loading);
   const projects = useDashboardStore(s => s.projects);
   const runs = useDashboardStore(s => s.runs);
   const [filter, setFilter] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Register keyboard shortcuts
+  useKeyboardShortcuts([
+    { key: '/', handler: () => searchInputRef.current?.focus() },
+  ]);
 
   if (loading) {
     return (
@@ -62,6 +69,7 @@ export function ProjectCards() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
           <input
+            ref={searchInputRef}
             type="text"
             value={filter}
             onChange={e => setFilter(e.target.value)}

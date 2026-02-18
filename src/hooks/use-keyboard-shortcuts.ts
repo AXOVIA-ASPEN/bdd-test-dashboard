@@ -9,6 +9,8 @@ interface KeyboardShortcut {
   key: string;
   handler: () => void;
   when?: boolean;
+  alt?: boolean; // Require Alt key to be pressed
+  ctrlOrCmd?: boolean; // Require Ctrl (or Cmd on Mac) to be pressed
 }
 
 /**
@@ -28,8 +30,8 @@ function isFormField(element: Element | null): boolean {
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ignore if typing in form field
-      if (isFormField(document.activeElement)) {
+      // Ignore if typing in form field (except for special cases like Escape)
+      if (isFormField(document.activeElement) && event.key !== 'Escape') {
         return;
       }
 
@@ -38,8 +40,18 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
         // Skip if conditional is false
         if (shortcut.when === false) continue;
 
-        // Match key (case-insensitive)
-        if (event.key.toLowerCase() === shortcut.key.toLowerCase()) {
+        // Check modifier keys match
+        const altMatch = shortcut.alt ? event.altKey : !event.altKey;
+        const ctrlMatch = shortcut.ctrlOrCmd 
+          ? (event.ctrlKey || event.metaKey) 
+          : !event.ctrlKey && !event.metaKey;
+
+        // Match key (case-insensitive) and modifiers
+        if (
+          event.key.toLowerCase() === shortcut.key.toLowerCase() &&
+          altMatch &&
+          ctrlMatch
+        ) {
           event.preventDefault();
           shortcut.handler();
           break;
