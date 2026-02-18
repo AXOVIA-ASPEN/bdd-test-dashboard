@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg, generateCsv } from './utils';
+import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg, generateCsv, deriveRunStatus } from './utils';
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -244,5 +244,56 @@ describe('generateCsv', () => {
     // Should not throw; optional fields are empty strings
     const lines = csv.split('\n');
     expect(lines).toHaveLength(2);
+  });
+});
+
+describe('deriveRunStatus', () => {
+  it('returns explicit status field when provided', () => {
+    const run = {
+      status: 'running',
+      summary: { failed: 5, skipped: 2 },
+    };
+    expect(deriveRunStatus(run)).toBe('running');
+  });
+
+  it('returns "failed" when summary has failed > 0 and no explicit status', () => {
+    const run = {
+      summary: { failed: 3, skipped: 1 },
+    };
+    expect(deriveRunStatus(run)).toBe('failed');
+  });
+
+  it('returns "skipped" when summary has skipped > 0, failed = 0, and no explicit status', () => {
+    const run = {
+      summary: { failed: 0, skipped: 2 },
+    };
+    expect(deriveRunStatus(run)).toBe('skipped');
+  });
+
+  it('returns "passed" when all tests passed (no failures or skips)', () => {
+    const run = {
+      summary: { failed: 0, skipped: 0 },
+    };
+    expect(deriveRunStatus(run)).toBe('passed');
+  });
+
+  it('returns "passed" when summary is missing', () => {
+    const run = {};
+    expect(deriveRunStatus(run)).toBe('passed');
+  });
+
+  it('returns "passed" when summary fields are undefined', () => {
+    const run = {
+      summary: {},
+    };
+    expect(deriveRunStatus(run)).toBe('passed');
+  });
+
+  it('prioritizes explicit status over summary derivation', () => {
+    const run = {
+      status: 'passed',
+      summary: { failed: 10, skipped: 5 },
+    };
+    expect(deriveRunStatus(run)).toBe('passed');
   });
 });
