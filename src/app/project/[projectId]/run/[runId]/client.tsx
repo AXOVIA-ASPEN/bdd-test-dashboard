@@ -22,10 +22,16 @@ function StepError({ error }: { error: string }) {
   const display = truncated ? lines.slice(0, 3).join('\n') : error;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(error).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(error)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => {
+        // Gracefully handle clipboard failures (non-HTTPS, denied permissions, etc.)
+        console.warn('Copy failed:', err);
+        // Optionally show brief "Failed" state instead of stuck button
+      });
   };
 
   return (
