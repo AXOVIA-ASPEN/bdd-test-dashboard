@@ -177,7 +177,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         </motion.div>
       )}
 
-      <ProjectTrendChart runs={runs} />
+      <ProjectTrendChart runs={projectRuns} />
 
       <div>
         <div className="flex items-center justify-between mb-4">

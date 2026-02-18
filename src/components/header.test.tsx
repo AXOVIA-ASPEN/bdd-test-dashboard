@@ -1,26 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-
-// Mock framer-motion
-vi.mock('framer-motion', () => ({
-  motion: {
-    button: ({ children, ...props }: any) => {
-      const { whileTap, initial, animate, transition, ...rest } = props;
-      return <button {...rest}>{children}</button>;
-    },
-    div: ({ children, ...props }: any) => {
-      const { initial, animate, transition, ...rest } = props;
-      return <div {...rest}>{children}</div>;
-    },
-  },
-}));
-
-// Mock next/link
-vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
-}));
-
 import { Header } from './header';
 
 describe('Header', () => {
