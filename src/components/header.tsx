@@ -1,10 +1,11 @@
 'use client';
 import { useDashboardStore } from '@/store/use-dashboard-store';
-import { Moon, Sun, FlaskConical, RefreshCw } from 'lucide-react';
+import { Moon, Sun, FlaskConical, RefreshCw, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { KeyboardShortcutsDialog } from './keyboard-shortcuts-dialog';
 
 function useRelativeTime(iso: string | null) {
   const [text, setText] = useState<string | null>(null);
@@ -29,11 +30,13 @@ function useRelativeTime(iso: string | null) {
 export function Header() {
   const { theme, toggleTheme, loading, retry, lastFetchedAt } = useDashboardStore();
   const relTime = useRelativeTime(lastFetchedAt);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   // Register global keyboard shortcuts
   useKeyboardShortcuts([
     { key: 'r', handler: () => { if (!loading) retry(); } },
     { key: 't', handler: toggleTheme },
+    { key: '?', handler: () => setShowShortcuts(prev => !prev) },
   ]);
 
   return (
@@ -63,6 +66,14 @@ export function Header() {
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.9 }}
+            onClick={() => setShowShortcuts(true)}
+            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            aria-label="Show keyboard shortcuts"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             aria-label="Toggle theme"
@@ -71,6 +82,11 @@ export function Header() {
           </motion.button>
         </nav>
       </div>
+
+      <KeyboardShortcutsDialog
+        open={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
     </header>
   );
 }
