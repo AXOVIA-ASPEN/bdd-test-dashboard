@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 
@@ -12,13 +12,37 @@ interface DayData {
   skipped: number;
 }
 
+const TIME_RANGES = [
+  { label: '7 days', value: 7 },
+  { label: '14 days', value: 14 },
+  { label: '30 days', value: 30 },
+  { label: '60 days', value: 60 },
+  { label: '90 days', value: 90 },
+] as const;
+
 export function TrendChart() {
   const runs = useDashboardStore(s => s.runs);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  
+  // Initialize time range from localStorage or default to 14
+  const [timeRange, setTimeRange] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('dashboard-trend-range');
+      return saved ? parseInt(saved, 10) : 14;
+    }
+    return 14;
+  });
+
+  // Persist time range to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('dashboard-trend-range', timeRange.toString());
+    }
+  }, [timeRange]);
 
   const data = useMemo(() => {
     const now = Date.now();
-    const days = 14;
+    const days = timeRange;
     const result: DayData[] = [];
     for (let i = days - 1; i >= 0; i--) {
       const dayStart = now - (i + 1) * 86400000;
@@ -45,14 +69,33 @@ export function TrendChart() {
       }
     }
     return result;
-  }, [runs]);
+  }, [runs, timeRange]);
 
   if (data.length === 0) {
     return (
       <div className="bg-card border border-card-border rounded-xl p-6">
-        <h3 className="text-lg font-semibold mb-4">Pass Rate Trend</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Pass Rate Trend</h3>
+          <div className="flex gap-1" role="group" aria-label="Time range selector">
+            {TIME_RANGES.map(range => (
+              <button
+                key={range.value}
+                onClick={() => setTimeRange(range.value)}
+                className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  timeRange === range.value
+                    ? 'bg-accent text-white'
+                    : 'text-muted hover:bg-card-border hover:text-foreground'
+                }`}
+                aria-label={`Show ${range.label}`}
+                aria-pressed={timeRange === range.value}
+              >
+                {range.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex items-center justify-center h-40 text-muted text-sm">
-          No test run data in the last 14 days. Run some tests to see trends here.
+          No test run data in the last {timeRange} days. Run some tests to see trends here.
         </div>
       </div>
     );
@@ -65,7 +108,26 @@ export function TrendChart() {
       transition={{ delay: 0.4 }}
       className="bg-card border border-card-border rounded-xl p-6"
     >
-      <h3 className="text-lg font-semibold mb-4">Pass Rate Trend</h3>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h3 className="text-lg font-semibold">Pass Rate Trend</h3>
+        <div className="flex gap-1" role="group" aria-label="Time range selector">
+          {TIME_RANGES.map(range => (
+            <button
+              key={range.value}
+              onClick={() => setTimeRange(range.value)}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                timeRange === range.value
+                  ? 'bg-accent text-white'
+                  : 'text-muted hover:bg-card-border hover:text-foreground'
+              }`}
+              aria-label={`Show ${range.label}`}
+              aria-pressed={timeRange === range.value}
+            >
+              {range.label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="flex items-end gap-2 h-40">
         {data.map((d, i) => (
           <div
