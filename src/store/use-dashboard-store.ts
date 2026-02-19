@@ -69,6 +69,7 @@ interface DashboardState {
   runs: TestRun[];
   runsTruncated: boolean;
   loading: boolean;
+  isRefreshing: boolean;
   error: string | null;
   lastFetchedAt: string | null;
   connected: boolean;
@@ -81,6 +82,7 @@ interface DashboardState {
   setRuns: (runs: TestRun[]) => void;
   setRunsTruncated: (truncated: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setRefreshing: (refreshing: boolean) => void;
   setError: (error: string | null) => void;
   setLastFetchedAt: (ts: string | null) => void;
   retryCount: number;
@@ -96,6 +98,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   runs: [],
   runsTruncated: false,
   loading: true,
+  isRefreshing: false,
   error: null,
   lastFetchedAt: null,
   connected: true,
@@ -117,6 +120,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   setRuns: (runs) => set({ runs }),
   setRunsTruncated: (truncated) => set({ runsTruncated: truncated }),
   setLoading: (loading) => set({ loading }),
+  setRefreshing: (refreshing) => set({ isRefreshing: refreshing }),
   setError: (error) => set({ error }),
   setLastFetchedAt: (ts) => set({ lastFetchedAt: ts }),
   retryCount: 0,

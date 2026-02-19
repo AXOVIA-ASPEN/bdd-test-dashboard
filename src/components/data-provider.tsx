@@ -28,6 +28,31 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Page Visibility API: Refresh stale data when tab regains focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        const store = useDashboardStore.getState();
+        const lastFetchedAt = store.lastFetchedAt;
+        
+        // Only refresh if data is older than 60 seconds
+        if (lastFetchedAt) {
+          const staleThreshold = 60_000; // 60 seconds in milliseconds
+          const timeSinceLastFetch = Date.now() - new Date(lastFetchedAt).getTime();
+          
+          if (timeSinceLastFetch > staleThreshold) {
+            store.setRefreshing(true);
+            store.retry();
+            announceDebounced('Refreshing stale data after tab became visible');
+          }
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   useEffect(() => {
     isRetry.current = retryCount > 0;
     initialLoad.current = true;
@@ -52,6 +77,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         initialLoad.current = false;
         const s = useDashboardStore.getState();
         s.setLoading(false);
+        s.setRefreshing(false);
         s.setLastFetchedAt(new Date().toISOString());
         const pCount = s.projects.length;
         const rCount = s.runs.length;

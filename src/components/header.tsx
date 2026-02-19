@@ -32,12 +32,13 @@ function useRelativeTime(iso: string | null) {
 }
 
 export function Header() {
-  const { theme, toggleTheme, loading, retry, lastFetchedAt, addToast } = useDashboardStore();
+  const { theme, toggleTheme, loading, isRefreshing, retry, lastFetchedAt, addToast } = useDashboardStore();
   const relTime = useRelativeTime(lastFetchedAt);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const isActive = loading || isRefreshing;
 
   const handleRefresh = () => {
-    if (!loading) {
+    if (!isActive) {
       retry();
       addToast('Refreshing data...', 'info');
     }
@@ -69,12 +70,12 @@ export function Header() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleRefresh}
-            disabled={loading}
+            disabled={isActive}
             data-testid={TEST_IDS.HEADER.REFRESH_BTN}
             className="p-2 rounded-lg hover:bg-card-border/50 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 print:hidden"
-            aria-label="Refresh data"
+            aria-label={isRefreshing ? 'Refreshing data...' : 'Refresh data'}
           >
-            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isActive ? 'animate-spin' : ''}`} />
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.9 }}
