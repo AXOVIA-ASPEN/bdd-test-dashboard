@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor, deriveRunStatus } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check, Link2 } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check, Link2, Download } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
@@ -255,6 +255,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const [retryCount, setRetryCount] = useState(0);
   const [isLive, setIsLive] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   // Update URL when status filter changes
   const updateStatusFilter = useCallback(
@@ -279,6 +280,21 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
     { key: 'Backspace', handler: () => router.push(`/project/${projectId}/`) },
     { key: 'ArrowLeft', alt: true, handler: () => router.push(`/project/${projectId}/`) },
   ]);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    if (!showExportMenu) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[aria-label="Export test run"]') && !target.closest('.absolute')) {
+        setShowExportMenu(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showExportMenu]);
 
   useEffect(() => {
     if (run && project) {
@@ -372,6 +388,98 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
       });
   }, []);
 
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const generateMarkdownReport = useCallback((run: TestRun, project: { name: string } | undefined): string => {
+    const { passed, failed, skipped, total } = run.summary || { passed: 0, failed: 0, skipped: 0, total: 0 };
+    const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0.0';
+    
+    let md = `# Test Run Report: ${project?.name || 'Unknown Project'}\n\n`;
+    md += `**Date:** ${formatDate(run.timestamp)} at ${formatTime(run.timestamp)}\n`;
+    md += `**Branch:** ${run.branch || 'unknown'}\n`;
+    if (run.environment) md += `**Environment:** ${run.environment}\n`;
+    md += `**Duration:** ${formatDuration(run.duration)}\n`;
+    md += `**Pass Rate:** ${passRate}%\n\n`;
+    
+    md += `## Summary\n\n`;
+    md += `- ✅ Passed: ${passed}\n`;
+    md += `- ❌ Failed: ${failed}\n`;
+    md += `- ⏭️ Skipped: ${skipped}\n`;
+    md += `- 📊 Total: ${total}\n\n`;
+    
+    if (run.tags && run.tags.length > 0) {
+      md += `**Tags:** ${run.tags.map(t => `\`${t}\``).join(', ')}\n\n`;
+    }
+    
+    md += `---\n\n`;
+    
+    // Features and scenarios
+    for (const feature of run.features || []) {
+      md += `## ${feature.name}\n\n`;
+      if (feature.description) {
+        md += `${feature.description}\n\n`;
+      }
+      
+      for (const scenario of feature.scenarios || []) {
+        const statusEmoji = scenario.status === 'passed' ? '✅' : scenario.status === 'failed' ? '❌' : '⏭️';
+        md += `### ${statusEmoji} ${scenario.name}\n\n`;
+        md += `**Status:** ${scenario.status}\n`;
+        md += `**Duration:** ${formatDuration(scenario.duration)}\n\n`;
+        
+        if (scenario.tags && scenario.tags.length > 0) {
+          md += `**Tags:** ${scenario.tags.map(t => `\`${t}\``).join(', ')}\n\n`;
+        }
+        
+        md += `**Steps:**\n\n`;
+        for (const step of scenario.steps || []) {
+          const stepStatus = step.status === 'passed' ? '✅' : step.status === 'failed' ? '❌' : '⏭️';
+          md += `- ${stepStatus} ${step.keyword} ${step.text}`;
+          if (step.duration && step.duration > 0) {
+            md += ` (${formatDuration(step.duration)})`;
+          }
+          md += `\n`;
+          
+          if (step.error || step.errorMessage) {
+            md += `  \`\`\`\n`;
+            md += `  ${step.error || step.errorMessage}\n`;
+            md += `  \`\`\`\n`;
+          }
+        }
+        md += `\n`;
+      }
+    }
+    
+    md += `---\n\n`;
+    md += `*Generated by BDD Test Dashboard on ${new Date().toISOString()}*\n`;
+    
+    return md;
+  }, []);
+
+  const exportRun = useCallback((format: 'json' | 'markdown') => {
+    if (!run || !project) return;
+    
+    const filename = `${project.name}-run-${new Date(run.timestamp).toISOString().split('T')[0]}`;
+    
+    if (format === 'json') {
+      const json = JSON.stringify(run, null, 2);
+      downloadFile(json, `${filename}.json`, 'application/json');
+    } else {
+      const markdown = generateMarkdownReport(run, project);
+      downloadFile(markdown, `${filename}.md`, 'text/markdown');
+    }
+    
+    setShowExportMenu(false);
+    useDashboardStore.getState().addToast(`Exported as ${format.toUpperCase()}`, 'success');
+  }, [run, project, generateMarkdownReport]);
+
   if (loadingRun) {
     return <RunDetailSkeleton />;
   }
@@ -458,7 +566,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
       </div>
 
       <div className="flex items-center gap-3">
-        <div>
+        <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project?.color }} />
             <h2 className="text-2xl font-bold">{project?.name || projectId}</h2>
@@ -485,6 +593,33 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
             <span className="flex items-center gap-1"><GitBranch className="w-3.5 h-3.5" />{run.branch}</span>
             {run.duration > 0 && <span>{formatDuration(run.duration)}</span>}
           </div>
+        </div>
+        <div className="relative ml-auto">
+          <button
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 bg-card border border-card-border rounded-lg hover:bg-card-border/50 transition-colors text-sm"
+            aria-label="Export test run"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </button>
+          
+          {showExportMenu && (
+            <div className="absolute top-full right-0 mt-2 bg-card border border-card-border rounded-lg shadow-lg p-2 z-50 min-w-[160px]">
+              <button 
+                onClick={() => exportRun('json')} 
+                className="w-full text-left px-3 py-2 rounded hover:bg-card-border/50 text-sm transition-colors"
+              >
+                📦 JSON
+              </button>
+              <button 
+                onClick={() => exportRun('markdown')} 
+                className="w-full text-left px-3 py-2 rounded hover:bg-card-border/50 text-sm transition-colors"
+              >
+                📝 Markdown
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
