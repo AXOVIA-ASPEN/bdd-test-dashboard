@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { Activity, CheckCircle2, XCircle, SkipForward, FolderPlus } from 'lucide-react';
 import { Skeleton } from './skeleton';
+import { TEST_IDS } from '@/lib/test-ids';
 
 const cardDefs = [
   { key: 'total' as const, label: 'Total Tests', icon: Activity, color: 'text-accent', suffix: '' },
@@ -104,6 +105,7 @@ export function SummaryCards() {
       {cardDefs.map((card, i) => (
         <motion.div
           key={card.key}
+          data-testid={TEST_IDS.SUMMARY_CARD(card.key)}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1 }}

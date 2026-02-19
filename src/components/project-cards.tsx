@@ -8,6 +8,7 @@ import { formatRelativeTime } from '@/lib/utils';
 import { Sparkline } from './sparkline';
 import { Skeleton } from './skeleton';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { TEST_IDS } from '@/lib/test-ids';
 
 export function ProjectCards() {
   const loading = useDashboardStore(s => s.loading);
@@ -130,6 +131,7 @@ export function ProjectCards() {
             >
               <Link
                 href={`/project/${p.id}/`}
+                data-testid={TEST_IDS.PROJECT_CARD(p.id)}
                 className="block bg-card border border-card-border rounded-xl p-5 hover:border-accent/50 transition-colors group focus-card focus-visible:outline-none"
               >
                 <div className="flex items-start justify-between mb-3">

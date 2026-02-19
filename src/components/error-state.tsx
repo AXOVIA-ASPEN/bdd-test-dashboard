@@ -1,5 +1,6 @@
 'use client';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { TEST_IDS } from '@/lib/test-ids';
 
 interface ErrorStateProps {
   message: string;
@@ -17,6 +18,7 @@ export function ErrorState({ message, onRetry, title = 'Failed to load data' }: 
         {onRetry && (
           <button
             onClick={onRetry}
+            data-testid={TEST_IDS.ERROR.RETRY_BTN}
             className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-lg transition-colors text-sm font-medium"
           >
             <RefreshCw className="w-4 h-4" />

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { KeyboardShortcutsDialog } from './keyboard-shortcuts-dialog';
+import { TEST_IDS } from '@/lib/test-ids';
 
 function useRelativeTime(iso: string | null) {
   const [text, setText] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-card-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group rounded-lg focus-card focus-visible:outline-none">
+        <Link href="/" data-testid={TEST_IDS.HEADER.HOME_LINK} className="flex items-center gap-3 group rounded-lg focus-card focus-visible:outline-none">
           <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
             <FlaskConical className="w-5 h-5 text-accent" />
           </div>
@@ -69,6 +70,7 @@ export function Header() {
             whileTap={{ scale: 0.9 }}
             onClick={handleRefresh}
             disabled={loading}
+            data-testid={TEST_IDS.HEADER.REFRESH_BTN}
             className="p-2 rounded-lg hover:bg-card-border/50 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             aria-label="Refresh data"
           >
@@ -85,6 +87,7 @@ export function Header() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={toggleTheme}
+            data-testid={TEST_IDS.HEADER.THEME_TOGGLE_BTN}
             className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             aria-label="Toggle theme"
           >

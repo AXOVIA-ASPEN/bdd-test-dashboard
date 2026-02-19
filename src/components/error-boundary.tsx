@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { TEST_IDS } from '@/lib/test-ids';
 
 const MAX_RETRIES = 3;
 
@@ -35,6 +36,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {canRetry && (
               <button
                 onClick={this.handleRetry}
+                data-testid={TEST_IDS.ERROR.TRY_AGAIN_BTN}
                 className="px-4 py-2 bg-accent text-white rounded-lg text-sm hover:opacity-90 transition-opacity"
               >
                 Try Again
@@ -42,6 +44,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             )}
             <button
               onClick={() => window.location.reload()}
+              data-testid={TEST_IDS.ERROR.RELOAD_BTN}
               className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm hover:opacity-90 transition-opacity"
             >
               Reload Page

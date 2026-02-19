@@ -6,6 +6,7 @@ import { formatDate, formatTime, formatDuration, statusBg, deriveRunStatus } fro
 import Link from 'next/link';
 import { Skeleton } from './skeleton';
 import { ChevronDown } from 'lucide-react';
+import { TEST_IDS } from '@/lib/test-ids';
 
 type StatusFilter = 'all' | 'passed' | 'failed' | 'skipped';
 
@@ -73,6 +74,7 @@ export function RecentRuns() {
         {pills.map(p => (
           <button
             key={p.key}
+            data-testid={TEST_IDS.RECENT_RUNS.FILTER_PILL(p.key)}
             onClick={() => { setStatusFilter(p.key); setVisibleCount(PAGE_SIZE); }}
             className={
               'text-sm px-3 py-1.5 rounded-full border transition-colors font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ' +
@@ -102,6 +104,7 @@ export function RecentRuns() {
               >
                 <Link
                   href={`/project/${run.projectId}/run/${run.id}/`}
+                  data-testid={TEST_IDS.RECENT_RUNS.RUN_ROW(run.id)}
                   className="flex items-center justify-between px-5 py-3 hover:bg-card-border/30 transition-colors focus-ring-inset focus-visible:outline-none"
                 >
                   <div className="flex items-center gap-3">
@@ -140,6 +143,7 @@ export function RecentRuns() {
           >
             <button
               onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+              data-testid={TEST_IDS.RECENT_RUNS.SHOW_MORE_BTN}
               className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors px-4 py-2 rounded-lg hover:bg-card-border/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               <ChevronDown className="w-4 h-4" />

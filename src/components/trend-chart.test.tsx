@@ -135,12 +135,12 @@ describe('TrendChart', () => {
     mockStore.runs = [makeRun(1, 8, 1, 3)]; // 8 passed, 1 failed, 3 skipped
     const { container } = render(<TrendChart />);
     
-    // Find the bar element (it's a div with cursor-pointer and specific height)
-    const bars = container.querySelectorAll('[style*="minHeight"]');
-    expect(bars.length).toBeGreaterThan(0);
+    // Find the bar container by looking for elements with role or data attributes
+    const barContainers = container.querySelectorAll('div[class*="cursor-pointer"]');
+    expect(barContainers.length).toBeGreaterThan(0);
     
     // Hover over the bar to trigger tooltip
-    fireEvent.mouseEnter(bars[0].parentElement!);
+    fireEvent.mouseEnter(barContainers[0]);
     
     // Tooltip should show skipped count
     expect(screen.getByText(/Skipped: 3/)).toBeInTheDocument();
@@ -150,7 +150,7 @@ describe('TrendChart', () => {
     mockStore.runs = [makeRun(1, 10, 0)];
     const { container } = render(<TrendChart />);
     
-    const barContainer = container.querySelector('[onmouseenter]');
+    const barContainer = container.querySelector('div[class*="cursor-pointer"]');
     expect(barContainer).toBeTruthy();
     
     // Click to show
