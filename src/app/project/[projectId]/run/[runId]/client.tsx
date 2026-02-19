@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor, deriveRunStatus } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check, Link2 } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
@@ -254,6 +254,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   });
   const [retryCount, setRetryCount] = useState(0);
   const [isLive, setIsLive] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Update URL when status filter changes
   const updateStatusFilter = useCallback(
@@ -358,6 +359,19 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
 
   const handleRetry = () => setRetryCount(c => c + 1);
 
+  const handleCopyLink = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => {
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.warn('Copy link failed:', err);
+        // Gracefully handle clipboard failures
+      });
+  }, []);
+
   if (loadingRun) {
     return <RunDetailSkeleton />;
   }
@@ -448,6 +462,13 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
           <div className="flex items-center gap-2 flex-wrap">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project?.color }} />
             <h2 className="text-2xl font-bold">{project?.name || projectId}</h2>
+            <button
+              onClick={handleCopyLink}
+              aria-label="Copy link to clipboard"
+              className="p-1.5 rounded-lg hover:bg-card-border/50 transition-colors text-muted hover:text-foreground"
+            >
+              {linkCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Link2 className="w-4 h-4" />}
+            </button>
             <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(overallStatus)}>{overallStatus}</span>
             {isLive && (
               <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">

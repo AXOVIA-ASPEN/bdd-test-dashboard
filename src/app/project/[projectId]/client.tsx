@@ -6,7 +6,7 @@ import { formatDate, formatTime, formatDuration, statusBg, generateCsv, download
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { ArrowUpDown, ChevronRight, Download, Filter, Info, Play, Search } from 'lucide-react';
+import { ArrowUpDown, ChevronRight, Download, Filter, Info, Play, Search, Link2, Check } from 'lucide-react';
 import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
@@ -65,6 +65,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const [showSort, setShowSort] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('date-desc');
   const [visibleCount, setVisibleCount] = useState(10);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Update URL when filters change
   const updateFilters = useCallback(
@@ -146,6 +147,19 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
     downloadCsv(content, filename);
   }, [project, runs]);
 
+  const handleCopyLink = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => {
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.warn('Copy link failed:', err);
+        // Gracefully handle clipboard failures
+      });
+  }, []);
+
   if (loading) {
     return <ProjectSkeleton />;
   }
@@ -177,6 +191,13 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: project.color }} />
               <h2 className="text-2xl font-bold">{project.name}</h2>
+              <button
+                onClick={handleCopyLink}
+                aria-label="Copy link to clipboard"
+                className="p-1.5 rounded-lg hover:bg-card-border/50 transition-colors text-muted hover:text-foreground"
+              >
+                {linkCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Link2 className="w-4 h-4" />}
+              </button>
             </div>
             <p className="text-sm text-muted">{project.description}</p>
           </div>
