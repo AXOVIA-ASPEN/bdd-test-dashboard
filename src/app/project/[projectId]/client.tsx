@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { motion } from 'framer-motion';
-import { formatDate, formatTime, formatDuration, statusBg, generateCsv, downloadCsv, deriveRunStatus } from '@/lib/utils';
+import { formatDate, formatTime, formatDuration, statusBg, generateCsv, downloadCsv, deriveRunStatus, formatRelativeTime } from '@/lib/utils';
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
@@ -398,7 +398,9 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
                   className="flex items-center justify-between px-5 py-3 hover:bg-card-border/30 transition-colors"
                 >
                   <div>
-                    <p className="text-sm font-medium">{formatDate(run.timestamp)} at {formatTime(run.timestamp)}</p>
+                    <p className="text-sm font-medium" title={`${formatDate(run.timestamp)} at ${formatTime(run.timestamp)}`}>
+                      {formatRelativeTime(run.timestamp)}
+                    </p>
                     <p className="text-xs text-muted">
                       {run.environment && (run.environment + ' · ')}{run.branch} · {formatDuration(run.duration)}
                     </p>
