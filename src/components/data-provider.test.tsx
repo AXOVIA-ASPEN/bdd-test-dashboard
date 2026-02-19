@@ -10,6 +10,15 @@ type SnapshotCall = {
 };
 let snapshotCalls: SnapshotCall[] = [];
 
+// Mock announce functions
+const mockAnnounce = vi.fn();
+const mockAnnounceDebounced = vi.fn();
+
+vi.mock('@/lib/announce', () => ({
+  announce: (...args: any[]) => mockAnnounce(...args),
+  announceDebounced: (...args: any[]) => mockAnnounceDebounced(...args),
+}));
+
 vi.mock('@/lib/firebase', () => ({
   getDb: vi.fn(() => ({})),
 }));
@@ -39,6 +48,8 @@ describe('DataProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     snapshotCalls = [];
+    mockAnnounce.mockClear();
+    mockAnnounceDebounced.mockClear();
     useDashboardStore.setState({
       projects: [],
       runs: [],
@@ -177,6 +188,114 @@ describe('DataProvider', () => {
     await waitFor(() => {
       const state = useDashboardStore.getState();
       expect(state.runs).toEqual([]);
+    });
+  });
+
+  describe('Accessibility Announcements', () => {
+    it('announces successful initial load with project and run counts', async () => {
+      render(<DataProvider><span>Test</span></DataProvider>);
+
+      // Deliver projects
+      snapshotCalls[0].onNext(makeSnapshot([
+        { id: 'p1', data: () => ({ name: 'Project 1' }) },
+        { id: 'p2', data: () => ({ name: 'Project 2' }) },
+      ]));
+
+      // Deliver runs
+      snapshotCalls[1].onNext(makeSnapshot([
+        { id: 'r1', data: () => ({ projectId: 'p1', status: 'passed' }) },
+        { id: 'r2', data: () => ({ projectId: 'p2', status: 'failed' }) },
+        { id: 'r3', data: () => ({ projectId: 'p1', status: 'skipped' }) },
+      ]));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Dashboard loaded. 2 projects, 3 test runs.');
+      });
+    });
+
+    it('announces successful refresh after retry', async () => {
+      // Simulate a retry scenario
+      useDashboardStore.setState({ retryCount: 1 });
+
+      render(<DataProvider><span>Test</span></DataProvider>);
+
+      snapshotCalls[0].onNext(makeSnapshot([{ id: 'p1', data: () => ({ name: 'Project 1' }) }]));
+      snapshotCalls[1].onNext(makeSnapshot([{ id: 'r1', data: () => ({ projectId: 'p1' }) }]));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Data refreshed successfully');
+      });
+    });
+
+    it('announces error when initial load fails', async () => {
+      render(<DataProvider><span>Test</span></DataProvider>);
+
+      snapshotCalls[0].onError(new Error('Network error'));
+      snapshotCalls[1].onNext(makeSnapshot([]));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Error loading data: Network error');
+      });
+    });
+
+    it('announces update after initial load via debounced announce', async () => {
+      render(<DataProvider><span>Test</span></DataProvider>);
+
+      // Initial load
+      snapshotCalls[0].onNext(makeSnapshot([{ id: 'p1', data: () => ({ name: 'Project 1' }) }]));
+      snapshotCalls[1].onNext(makeSnapshot([{ id: 'r1', data: () => ({ projectId: 'p1' }) }]));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Dashboard loaded. 1 project, 1 test run.');
+      });
+
+      mockAnnounce.mockClear();
+      mockAnnounceDebounced.mockClear();
+
+      // Subsequent update (new run added)
+      snapshotCalls[1].onNext(makeSnapshot([
+        { id: 'r1', data: () => ({ projectId: 'p1' }) },
+        { id: 'r2', data: () => ({ projectId: 'p1', status: 'failed' }) },
+      ]));
+
+      await waitFor(() => {
+        expect(mockAnnounceDebounced).toHaveBeenCalledWith('Data updated');
+      });
+
+      // Verify regular announce was NOT called for update (only debounced)
+      expect(mockAnnounce).not.toHaveBeenCalled();
+    });
+
+    it('uses singular form when announcing 1 project and 1 run', async () => {
+      render(<DataProvider><span>Test</span></DataProvider>);
+
+      snapshotCalls[0].onNext(makeSnapshot([{ id: 'p1', data: () => ({ name: 'Single' }) }]));
+      snapshotCalls[1].onNext(makeSnapshot([{ id: 'r1', data: () => ({ projectId: 'p1' }) }]));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Dashboard loaded. 1 project, 1 test run.');
+      });
+    });
+
+    it('announces error in projects listener after initial load', async () => {
+      render(<DataProvider><span>Test</span></DataProvider>);
+
+      // Initial load succeeds
+      snapshotCalls[0].onNext(makeSnapshot([{ id: 'p1', data: () => ({ name: 'Project 1' }) }]));
+      snapshotCalls[1].onNext(makeSnapshot([{ id: 'r1', data: () => ({ projectId: 'p1' }) }]));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Dashboard loaded. 1 project, 1 test run.');
+      });
+
+      mockAnnounce.mockClear();
+
+      // Now trigger an error
+      snapshotCalls[0].onError(new Error('Connection lost'));
+
+      await waitFor(() => {
+        expect(mockAnnounce).toHaveBeenCalledWith('Error loading data: Connection lost');
+      });
     });
   });
 });
