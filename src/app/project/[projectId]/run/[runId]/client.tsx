@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDashboardStore, type TestRun, type Feature } from '@/store/use-dashboard-store';
 import { getDb } from '@/lib/firebase';
 import { doc, collection, onSnapshot } from 'firebase/firestore';
@@ -12,7 +12,7 @@ import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 function StepError({ error }: { error: string }) {
   const [expanded, setExpanded] = useState(false);
@@ -238,12 +238,37 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const allRuns = useDashboardStore(s => s.runs ?? []);
   const { prevRun, nextRun } = deriveAdjacentRuns(allRuns, projectId, runId);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [run, setRun] = useState<TestRun | null>(null);
   const [loadingRun, setLoadingRun] = useState(true);
   const [errorRun, setErrorRun] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
+    const status = searchParams.get('status');
+    return status && ['all', 'passed', 'failed', 'skipped'].includes(status)
+      ? (status as StatusFilter)
+      : 'all';
+  });
   const [retryCount, setRetryCount] = useState(0);
   const [isLive, setIsLive] = useState(false);
+
+  // Update URL when status filter changes
+  const updateStatusFilter = useCallback(
+    (newStatus: StatusFilter) => {
+      setStatusFilter(newStatus);
+      const params = new URLSearchParams(searchParams.toString());
+      
+      if (newStatus === 'all') {
+        params.delete('status');
+      } else {
+        params.set('status', newStatus);
+      }
+      
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    },
+    [searchParams, pathname, router]
+  );
 
   // Register keyboard shortcuts
   useKeyboardShortcuts([
@@ -462,7 +487,7 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
         </div>
       )}
 
-      <FeatureSections features={run.features} statusFilter={statusFilter} setStatusFilter={setStatusFilter} />
+      <FeatureSections features={run.features} statusFilter={statusFilter} setStatusFilter={updateStatusFilter} />
 
       {(!run.features || run.features.length === 0) && (
         <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">No detailed results for this run.</div>

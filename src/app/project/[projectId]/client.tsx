@@ -11,7 +11,7 @@ import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 const STATUS_OPTIONS = ['all', 'passed', 'failed', 'skipped'] as const;
 type StatusFilter = (typeof STATUS_OPTIONS)[number];
@@ -48,13 +48,48 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const error = useDashboardStore(s => s.error);
   const retry = useDashboardStore(s => s.retry);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const [runDialogOpen, setRunDialogOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-  const [branchFilter, setBranchFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(
+    () => {
+      const status = searchParams.get('status');
+      return status && STATUS_OPTIONS.includes(status as StatusFilter) 
+        ? (status as StatusFilter) 
+        : 'all';
+    }
+  );
+  const [branchFilter, setBranchFilter] = useState(() => searchParams.get('branch') || '');
   const [showFilters, setShowFilters] = useState(false);
   const [showSort, setShowSort] = useState(false);
   const [sortBy, setSortBy] = useState<SortBy>('date-desc');
   const [visibleCount, setVisibleCount] = useState(10);
+
+  // Update URL when filters change
+  const updateFilters = useCallback(
+    (newStatus: StatusFilter | null, newBranch: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      
+      const finalStatus = newStatus !== null ? newStatus : statusFilter;
+      const finalBranch = newBranch !== null ? newBranch : branchFilter;
+      
+      if (finalStatus === 'all') {
+        params.delete('status');
+      } else {
+        params.set('status', finalStatus);
+      }
+      
+      if (!finalBranch) {
+        params.delete('branch');
+      } else {
+        params.set('branch', finalBranch);
+      }
+      
+      const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+      router.replace(newUrl, { scroll: false });
+    },
+    [searchParams, pathname, router, statusFilter, branchFilter]
+  );
 
   // Register keyboard shortcuts
   useKeyboardShortcuts([
@@ -265,7 +300,12 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted">Filters</span>
               {isFiltered && (
-                <button onClick={() => { setStatusFilter('all'); setBranchFilter(''); setVisibleCount(10); }} className="text-xs text-accent hover:underline">Clear all</button>
+                <button onClick={() => { 
+                  setStatusFilter('all'); 
+                  setBranchFilter(''); 
+                  updateFilters('all', ''); 
+                  setVisibleCount(10); 
+                }} className="text-xs text-accent hover:underline">Clear all</button>
               )}
             </div>
             <div>
@@ -276,7 +316,11 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
                     key={s}
                     role="radio"
                     aria-checked={statusFilter === s}
-                    onClick={() => { setStatusFilter(s); setVisibleCount(10); }}
+                    onClick={() => { 
+                      setStatusFilter(s); 
+                      updateFilters(s, null); 
+                      setVisibleCount(10); 
+                    }}
                     className={'px-3 py-1 rounded-full text-xs font-medium border transition-colors ' + (statusFilter === s ? 'bg-accent/20 border-accent/40 text-accent' : 'border-card-border text-muted hover:text-foreground')}
                   >
                     {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -291,7 +335,11 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
                 <select
                   id="branch-filter"
                   value={branchFilter}
-                  onChange={e => { setBranchFilter(e.target.value); setVisibleCount(10); }}
+                  onChange={e => { 
+                    setBranchFilter(e.target.value); 
+                    updateFilters(null, e.target.value); 
+                    setVisibleCount(10); 
+                  }}
                   className="w-full pl-8 pr-3 py-1.5 bg-transparent border border-card-border rounded-lg text-sm focus:outline-none focus:border-accent/50"
                 >
                   <option value="">All branches</option>

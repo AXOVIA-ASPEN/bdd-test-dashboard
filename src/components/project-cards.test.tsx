@@ -26,6 +26,10 @@ vi.mock('@/store/use-dashboard-store', () => ({
   useDashboardStore: (selector: any) => selector(mockStore),
 }));
 
+vi.mock('@/hooks/use-keyboard-shortcuts', () => ({
+  useKeyboardShortcuts: vi.fn(),
+}));
+
 const project = (id: string, name: string) => ({
   id, name, description: `${name} desc`, color: '#ff0000', repo: '', makeTarget: '', tags: [],
 });
@@ -152,5 +156,89 @@ describe('ProjectCards', () => {
     mockStore.runs = [];
     render(<ProjectCards />);
     expect(screen.getByText('No runs')).toBeInTheDocument();
+  });
+
+  // ── Loading state tests ──────────────────────────────────────────────────
+
+  it('renders skeleton cards when loading', () => {
+    mockStore.loading = true;
+    mockStore.projects = [];
+    render(<ProjectCards />);
+    expect(screen.getByText('Projects')).toBeInTheDocument();
+    // Should show 3 skeleton cards
+    const skeletons = document.querySelectorAll('.bg-card');
+    expect(skeletons.length).toBeGreaterThanOrEqual(3);
+  });
+
+  // ── Filter functionality tests ───────────────────────────────────────────
+
+  it('filters projects by name', () => {
+    mockStore.loading = false;
+    mockStore.projects = [project('p1', 'Alpha'), project('p2', 'Beta'), project('p3', 'Gamma')];
+    const { fireEvent } = require('@testing-library/react');
+    const { rerender } = render(<ProjectCards />);
+    
+    const input = screen.getByPlaceholderText('Filter projects...');
+    expect(input).toBeInTheDocument();
+    
+    // Type in filter
+    fireEvent.change(input, { target: { value: 'bet' } });
+    
+    // After filtering, only Beta should be visible (case-insensitive)
+    expect(screen.getByText('Beta')).toBeInTheDocument();
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument();
+    expect(screen.queryByText('Gamma')).not.toBeInTheDocument();
+  });
+
+  it('shows "No projects match your filter" when filter has no results', () => {
+    mockStore.loading = false;
+    mockStore.projects = [project('p1', 'Alpha')];
+    const { fireEvent } = require('@testing-library/react');
+    render(<ProjectCards />);
+    
+    const input = screen.getByPlaceholderText('Filter projects...');
+    fireEvent.change(input, { target: { value: 'xyz' } });
+    
+    // Should show no match message
+    expect(screen.getByText('No projects match your filter')).toBeInTheDocument();
+  });
+
+  it('shows clear button when filter has value', () => {
+    mockStore.loading = false;
+    mockStore.projects = [project('p1', 'Alpha')];
+    const { fireEvent } = require('@testing-library/react');
+    render(<ProjectCards />);
+    
+    const input = screen.getByPlaceholderText('Filter projects...');
+    fireEvent.change(input, { target: { value: 'test' } });
+    
+    // X icon should be visible
+    expect(screen.getByTestId('x-icon')).toBeInTheDocument();
+  });
+
+  it('clears filter when clear button is clicked', () => {
+    mockStore.loading = false;
+    mockStore.projects = [project('p1', 'Alpha')];
+    const { fireEvent } = require('@testing-library/react');
+    render(<ProjectCards />);
+    
+    const input = screen.getByPlaceholderText('Filter projects...') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'test' } });
+    
+    // Click clear button
+    const clearBtn = screen.getByTestId('x-icon').closest('button');
+    if (clearBtn) fireEvent.click(clearBtn);
+    
+    // Filter should be cleared
+    expect(input.value).toBe('');
+  });
+
+  it('has accessible label for filter input', () => {
+    mockStore.loading = false;
+    mockStore.projects = [project('p1', 'Alpha')];
+    render(<ProjectCards />);
+    
+    const input = screen.getByLabelText('Filter projects by name');
+    expect(input).toBeInTheDocument();
   });
 });

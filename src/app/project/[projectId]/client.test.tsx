@@ -226,4 +226,220 @@ describe('ProjectClient', () => {
     render(<ProjectClient projectId="test" />);
     expect(screen.getByText('skipped')).toBeInTheDocument();
   });
+
+  it('toggles sort panel visibility', () => {
+    render(<ProjectClient projectId="test" />);
+    const sortBtn = screen.getByRole('button', { name: /toggle sort/i });
+    expect(sortBtn).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(sortBtn);
+    expect(sortBtn).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('Sort by')).toBeInTheDocument();
+    fireEvent.click(sortBtn);
+    expect(sortBtn).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('closes filter panel when opening sort panel', () => {
+    render(<ProjectClient projectId="test" />);
+    // Open filters first
+    const filterBtn = screen.getByRole('button', { name: /toggle filters/i });
+    fireEvent.click(filterBtn);
+    expect(filterBtn).toHaveAttribute('aria-expanded', 'true');
+    // Open sort panel - should close filters
+    const sortBtn = screen.getByRole('button', { name: /toggle sort/i });
+    fireEvent.click(sortBtn);
+    expect(sortBtn).toHaveAttribute('aria-expanded', 'true');
+    expect(filterBtn).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('sorts runs by duration ascending', () => {
+    mockState.runs = [
+      {
+        id: 'run1',
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 5000,
+        status: 'passed',
+        summary: { total: 10, passed: 10, failed: 0, skipped: 0 },
+      },
+      {
+        id: 'run2',
+        projectId: 'test',
+        timestamp: '2026-02-13T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 2000,
+        status: 'passed',
+        summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    // Open sort panel
+    fireEvent.click(screen.getByRole('button', { name: /toggle sort/i }));
+    // Click "Duration (shortest)" option
+    fireEvent.click(screen.getByText('Duration (shortest)'));
+    // The shorter run (2000ms, 5/5) should appear first
+    const runCards = screen.getAllByText(/\d+\/\d+/);
+    expect(runCards[0]).toHaveTextContent('5/5');
+  });
+
+  it('sorts runs by duration descending', () => {
+    mockState.runs = [
+      {
+        id: 'run1',
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 2000,
+        status: 'passed',
+        summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+      },
+      {
+        id: 'run2',
+        projectId: 'test',
+        timestamp: '2026-02-13T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 5000,
+        status: 'passed',
+        summary: { total: 10, passed: 10, failed: 0, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    // Open sort panel
+    fireEvent.click(screen.getByRole('button', { name: /toggle sort/i }));
+    // Click "Duration (longest)" option
+    fireEvent.click(screen.getByText('Duration (longest)'));
+    // The longer run (5000ms, 10/10) should appear first
+    const runCards = screen.getAllByText(/\d+\/\d+/);
+    expect(runCards[0]).toHaveTextContent('10/10');
+  });
+
+  it('sorts runs by date ascending (oldest first)', () => {
+    mockState.runs = [
+      {
+        id: 'run1',
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 5000,
+        status: 'passed',
+        summary: { total: 10, passed: 10, failed: 0, skipped: 0 },
+      },
+      {
+        id: 'run2',
+        projectId: 'test',
+        timestamp: '2026-02-13T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 2000,
+        status: 'passed',
+        summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    // Open sort panel
+    fireEvent.click(screen.getByRole('button', { name: /toggle sort/i }));
+    // Click "Date (oldest first)" option
+    fireEvent.click(screen.getByText('Date (oldest first)'));
+    // The older run (Feb 13, 5/5) should appear first
+    const runCards = screen.getAllByText(/\d+\/\d+/);
+    expect(runCards[0]).toHaveTextContent('5/5');
+  });
+
+  it('resets sort to default (date descending)', () => {
+    mockState.runs = [
+      {
+        id: 'run1',
+        projectId: 'test',
+        timestamp: '2026-02-14T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 5000,
+        status: 'passed',
+        summary: { total: 10, passed: 10, failed: 0, skipped: 0 },
+      },
+      {
+        id: 'run2',
+        projectId: 'test',
+        timestamp: '2026-02-13T12:00:00Z',
+        branch: 'main',
+        environment: 'ci',
+        duration: 2000,
+        status: 'passed',
+        summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+      },
+    ];
+    render(<ProjectClient projectId="test" />);
+    // Open sort panel and change sort
+    fireEvent.click(screen.getByRole('button', { name: /toggle sort/i }));
+    fireEvent.click(screen.getByText('Duration (shortest)'));
+    // Verify sort changed (shortest first)
+    let runCards = screen.getAllByText(/\d+\/\d+/);
+    expect(runCards[0]).toHaveTextContent('5/5');
+    // Open sort panel again and reset
+    fireEvent.click(screen.getByRole('button', { name: /toggle sort/i }));
+    fireEvent.click(screen.getByText('Reset'));
+    // Should be back to date descending (newest first)
+    runCards = screen.getAllByText(/\d+\/\d+/);
+    expect(runCards[0]).toHaveTextContent('10/10');
+  });
+
+  it('shows "Show More" button when runs exceed visible count', () => {
+    // Create 15 runs (more than default visible count of 10)
+    mockState.runs = Array.from({ length: 15 }, (_, i) => ({
+      id: `run${i + 1}`,
+      projectId: 'test',
+      timestamp: new Date(2026, 1, 15 - i).toISOString(),
+      branch: 'main',
+      environment: 'ci',
+      duration: 1000 + i * 100,
+      status: 'passed',
+      summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+    }));
+    render(<ProjectClient projectId="test" />);
+    expect(screen.getByText('Showing 10 of 15 runs')).toBeInTheDocument();
+    expect(screen.getByText('Show More')).toBeInTheDocument();
+  });
+
+  it('loads more runs when Show More is clicked', () => {
+    // Create 15 runs
+    mockState.runs = Array.from({ length: 15 }, (_, i) => ({
+      id: `run${i + 1}`,
+      projectId: 'test',
+      timestamp: new Date(2026, 1, 15 - i).toISOString(),
+      branch: 'main',
+      environment: 'ci',
+      duration: 1000 + i * 100,
+      status: 'passed',
+      summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+    }));
+    render(<ProjectClient projectId="test" />);
+    expect(screen.getByText('Showing 10 of 15 runs')).toBeInTheDocument();
+    // Click Show More
+    fireEvent.click(screen.getByText('Show More'));
+    // Should now show all 15 runs
+    expect(screen.getByText('Showing 15 of 15 runs')).toBeInTheDocument();
+    expect(screen.queryByText('Show More')).not.toBeInTheDocument();
+  });
+
+  it('hides Show More button when all runs are visible', () => {
+    // Create 8 runs (less than default visible count of 10)
+    mockState.runs = Array.from({ length: 8 }, (_, i) => ({
+      id: `run${i + 1}`,
+      projectId: 'test',
+      timestamp: new Date(2026, 1, 15 - i).toISOString(),
+      branch: 'main',
+      environment: 'ci',
+      duration: 1000 + i * 100,
+      status: 'passed',
+      summary: { total: 5, passed: 5, failed: 0, skipped: 0 },
+    }));
+    render(<ProjectClient projectId="test" />);
+    expect(screen.getByText('Showing 8 of 8 runs')).toBeInTheDocument();
+    expect(screen.queryByText('Show More')).not.toBeInTheDocument();
+  });
 });

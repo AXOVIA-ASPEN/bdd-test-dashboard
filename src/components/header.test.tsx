@@ -130,4 +130,70 @@ describe('Header', () => {
     clearSpy.mockRestore();
     vi.useRealTimers();
   });
+
+  it('opens shortcuts dialog when help button is clicked', () => {
+    render(<Header />);
+    const helpBtn = screen.getByLabelText('Show keyboard shortcuts');
+    fireEvent.click(helpBtn);
+    // Dialog should be open
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
+  it('closes shortcuts dialog when close is triggered', () => {
+    render(<Header />);
+    const helpBtn = screen.getByLabelText('Show keyboard shortcuts');
+    fireEvent.click(helpBtn);
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    
+    // Close via close button
+    const closeBtn = screen.getByLabelText('Close shortcuts dialog');
+    fireEvent.click(closeBtn);
+    
+    // Dialog should be closed (not in document)
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('toggles shortcuts dialog with ? keyboard shortcut', () => {
+    render(<Header />);
+    
+    // Dialog should be closed initially
+    expect(screen.queryByRole('dialog')).toBeNull();
+    
+    // Press '?' to open
+    fireEvent.keyDown(document, { key: '?' });
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    
+    // Press '?' again to close
+    fireEvent.keyDown(document, { key: '?' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('calls retry when r keyboard shortcut is pressed', () => {
+    const retrySpy = vi.fn();
+    useDashboardStore.setState({ retry: retrySpy, loading: false });
+    render(<Header />);
+    
+    fireEvent.keyDown(document, { key: 'r' });
+    expect(retrySpy).toHaveBeenCalled();
+  });
+
+  it('does not retry with r shortcut when loading', () => {
+    const retrySpy = vi.fn();
+    useDashboardStore.setState({ retry: retrySpy, loading: true });
+    render(<Header />);
+    
+    fireEvent.keyDown(document, { key: 'r' });
+    expect(retrySpy).not.toHaveBeenCalled();
+  });
+
+  it('toggles theme with t keyboard shortcut', () => {
+    useDashboardStore.setState({ theme: 'dark' });
+    render(<Header />);
+    
+    fireEvent.keyDown(document, { key: 't' });
+    expect(useDashboardStore.getState().theme).toBe('light');
+    
+    fireEvent.keyDown(document, { key: 't' });
+    expect(useDashboardStore.getState().theme).toBe('dark');
+  });
 });

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg, generateCsv, deriveRunStatus } from './utils';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { cn, formatDuration, formatRelativeTime, formatDate, formatTime, statusColor, statusBg, generateCsv, deriveRunStatus, downloadCsv } from './utils';
 
 describe('cn', () => {
   it('merges class names', () => {
@@ -295,5 +295,102 @@ describe('deriveRunStatus', () => {
       summary: { failed: 10, skipped: 5 },
     };
     expect(deriveRunStatus(run)).toBe('passed');
+  });
+});
+
+describe('downloadCsv', () => {
+  let mockCreateObjectURL: ReturnType<typeof vi.fn>;
+  let mockRevokeObjectURL: ReturnType<typeof vi.fn>;
+  let mockAnchorClick: ReturnType<typeof vi.fn>;
+  let mockCreateElement: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    // Mock URL methods
+    mockCreateObjectURL = vi.fn(() => 'blob:mock-url-123');
+    mockRevokeObjectURL = vi.fn();
+    global.URL.createObjectURL = mockCreateObjectURL;
+    global.URL.revokeObjectURL = mockRevokeObjectURL;
+
+    // Mock anchor element
+    mockAnchorClick = vi.fn();
+    const mockAnchor = {
+      href: '',
+      download: '',
+      click: mockAnchorClick,
+    };
+    mockCreateElement = vi.fn(() => mockAnchor);
+    global.document.createElement = mockCreateElement as any;
+
+    // Mock Blob
+    global.Blob = class MockBlob {
+      constructor(public content: any[], public options: any) {}
+    } as any;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('creates a Blob with correct content and type', () => {
+    const content = 'header1,header2\nvalue1,value2';
+    downloadCsv(content, 'test.csv');
+    
+    expect(global.Blob).toBeDefined();
+    // Blob was created with content array
+    expect(mockCreateObjectURL).toHaveBeenCalled();
+  });
+
+  it('creates a blob URL from the content', () => {
+    const content = 'test,csv,data';
+    downloadCsv(content, 'export.csv');
+    
+    expect(mockCreateObjectURL).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates an anchor element', () => {
+    downloadCsv('data', 'file.csv');
+    
+    expect(mockCreateElement).toHaveBeenCalledWith('a');
+  });
+
+  it('sets the download filename on the anchor', () => {
+    downloadCsv('data', 'my-report.csv');
+    
+    const anchor = mockCreateElement.mock.results[0].value;
+    expect(anchor.download).toBe('my-report.csv');
+  });
+
+  it('sets the href to the blob URL', () => {
+    downloadCsv('data', 'test.csv');
+    
+    const anchor = mockCreateElement.mock.results[0].value;
+    expect(anchor.href).toBe('blob:mock-url-123');
+  });
+
+  it('triggers a click on the anchor element', () => {
+    downloadCsv('data', 'test.csv');
+    
+    expect(mockAnchorClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('revokes the object URL after download', () => {
+    downloadCsv('data', 'test.csv');
+    
+    expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url-123');
+  });
+
+  it('handles empty content', () => {
+    downloadCsv('', 'empty.csv');
+    
+    expect(mockAnchorClick).toHaveBeenCalled();
+    expect(mockRevokeObjectURL).toHaveBeenCalled();
+  });
+
+  it('handles large CSV content', () => {
+    const largeContent = Array(1000).fill('row,data,here').join('\n');
+    downloadCsv(largeContent, 'large.csv');
+    
+    expect(mockAnchorClick).toHaveBeenCalled();
+    expect(mockRevokeObjectURL).toHaveBeenCalled();
   });
 });
