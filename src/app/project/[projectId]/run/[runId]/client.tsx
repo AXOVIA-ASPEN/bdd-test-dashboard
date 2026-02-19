@@ -65,6 +65,9 @@ function FeatureSections({ features, statusFilter, setStatusFilter }: { features
   // Determine which features have failures for auto-expand
   const featureHasFailure = (f: Feature) => (f.scenarios || []).some(s => s.status === 'failed');
 
+  // Track collapsed scenario steps (by key: "featureIdx-scenarioIdx")
+  const [collapsedSteps, setCollapsedSteps] = useState<Record<string, boolean>>({});
+
   // Reset expanded state when statusFilter or features change
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
@@ -187,30 +190,70 @@ function FeatureSections({ features, statusFilter, setStatusFilter }: { features
                 className="overflow-hidden"
               >
                 <div className="px-5 pb-5 space-y-3">
-                  {(feature.scenarios || []).map((scenario, si) => (
-                    <div key={si} className="border border-card-border rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">{scenario.name}</span>
-                        <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(scenario.status)}>{scenario.status}</span>
+                  {(feature.scenarios || []).map((scenario, si) => {
+                    const steps = scenario.steps || [];
+                    const stepKey = `${fi}-${si}`;
+                    const isCollapsed = collapsedSteps[stepKey] ?? (scenario.status !== 'failed' && steps.length > 6);
+                    const shouldTruncate = steps.length > 6;
+                    
+                    // Show first 4 + last step when collapsed
+                    const visibleSteps = !shouldTruncate || !isCollapsed 
+                      ? steps 
+                      : [...steps.slice(0, 4), steps[steps.length - 1]];
+                    const hiddenCount = steps.length - 5; // First 4 + last 1 = 5 visible
+
+                    return (
+                      <div key={si} className="border border-card-border rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium">{scenario.name}</span>
+                          <span className={'text-xs px-2 py-0.5 rounded-full border ' + statusBg(scenario.status)}>{scenario.status}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {visibleSteps.map((step, si2) => {
+                            // If we're in collapsed mode and this is the last step, show it at the actual index
+                            const actualIndex = isCollapsed && shouldTruncate && si2 === 4 ? steps.length - 1 : si2;
+                            
+                            return (
+                              <div key={actualIndex}>
+                                {/* Show "... N more steps" button before the last step when collapsed */}
+                                {isCollapsed && shouldTruncate && si2 === 4 && (
+                                  <button
+                                    onClick={() => setCollapsedSteps(prev => ({ ...prev, [stepKey]: false }))}
+                                    className="text-xs text-accent hover:text-accent/80 underline py-1 font-medium"
+                                  >
+                                    Show {hiddenCount} more step{hiddenCount !== 1 ? 's' : ''}
+                                  </button>
+                                )}
+                                
+                                <div className="text-xs">
+                                  <div className="flex items-start gap-2">
+                                    <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
+                                    <span className={statusColor(step.status)}>{step.text}</span>
+                                    {step.duration != null && step.duration > 0 && (
+                                      <span className="text-muted ml-auto shrink-0">{formatDuration(step.duration)}</span>
+                                    )}
+                                  </div>
+                                  {step.status === 'failed' && (step.error || step.errorMessage) && (
+                                    <StepError error={(step.error || step.errorMessage)!} />
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                          {/* Collapse button shown after all steps when expanded */}
+                          {!isCollapsed && shouldTruncate && (
+                            <button
+                              onClick={() => setCollapsedSteps(prev => ({ ...prev, [stepKey]: true }))}
+                              className="text-xs text-accent hover:text-accent/80 underline py-1 font-medium"
+                            >
+                              Collapse
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        {(scenario.steps || []).map((step, si2) => (
-                          <div key={si2} className="text-xs">
-                            <div className="flex items-start gap-2">
-                              <span className="text-accent font-mono w-12 shrink-0 font-semibold">{step.keyword}</span>
-                              <span className={statusColor(step.status)}>{step.text}</span>
-                              {step.duration != null && step.duration > 0 && (
-                                <span className="text-muted ml-auto shrink-0">{formatDuration(step.duration)}</span>
-                              )}
-                            </div>
-                            {step.status === 'failed' && (step.error || step.errorMessage) && (
-                              <StepError error={(step.error || step.errorMessage)!} />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
