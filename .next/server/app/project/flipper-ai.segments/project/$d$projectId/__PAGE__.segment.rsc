@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
-2:I[77300,["/_next/static/chunks/e9205f1a9e225fde.js","/_next/static/chunks/32aaa1d8aaa54e7b.js","/_next/static/chunks/7fd3686f59a5cf90.js","/_next/static/chunks/b7cfd82e75130fbc.js","/_next/static/chunks/3a9bd1cd9765cc81.js"],"default"]
+2:I[77300,["/_next/static/chunks/88f6938e07baa1d0.js","/_next/static/chunks/32aaa1d8aaa54e7b.js","/_next/static/chunks/39545c8224f17888.js","/_next/static/chunks/82000966b2d59962.js","/_next/static/chunks/3a9bd1cd9765cc81.js"],"default"]
 3:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"Q2lATfBL6jHbtTF98Kv2k","rsc":["$","$1","c",{"children":[["$","$L2",null,{"projectId":"flipper-ai"}],[["$","script","script-0",{"src":"/_next/static/chunks/b7cfd82e75130fbc.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/3a9bd1cd9765cc81.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"2tXo2I7_DvVfYaoukhh_5","rsc":["$","$1","c",{"children":[["$","$L2",null,{"projectId":"flipper-ai"}],[["$","script","script-0",{"src":"/_next/static/chunks/82000966b2d59962.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/3a9bd1cd9765cc81.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null

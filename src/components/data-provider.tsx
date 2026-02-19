@@ -57,10 +57,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const rCount = s.runs.length;
         if (s.error) {
           announce(`Error loading data: ${s.error}`);
+          s.addToast(`Error loading data: ${s.error}`, 'error');
         } else {
-          announce(isRetry.current
+          const message = isRetry.current
             ? 'Data refreshed successfully'
-            : `Dashboard loaded. ${pCount} project${pCount !== 1 ? 's' : ''}, ${rCount} test run${rCount !== 1 ? 's' : ''}.`);
+            : `Dashboard loaded. ${pCount} project${pCount !== 1 ? 's' : ''}, ${rCount} test run${rCount !== 1 ? 's' : ''}.`;
+          announce(message);
+          if (isRetry.current) {
+            s.addToast('Data refreshed', 'success');
+          }
         }
       }
     }
@@ -81,8 +86,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       (err) => {
         console.error('Firestore projects listener error:', err);
         const message = err instanceof Error ? err.message : 'Failed to load projects';
-        useDashboardStore.getState().setError(message);
-        useDashboardStore.getState().setConnected(false);
+        const store = useDashboardStore.getState();
+        store.setError(message);
+        store.setConnected(false);
+        store.addToast(`Error loading projects: ${message}`, 'error');
         announce(`Error loading data: ${message}`);
         projectsReady = true;
         checkInitialLoad();

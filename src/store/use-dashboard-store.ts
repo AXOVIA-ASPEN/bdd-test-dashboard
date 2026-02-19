@@ -55,7 +55,16 @@ export interface Project {
 
 type Theme = 'light' | 'dark';
 
+export interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
+
 interface DashboardState {
+  toasts: Toast[];
+  addToast: (message: string, type?: Toast['type']) => void;
+  removeToast: (id: string) => void;
   projects: Project[];
   runs: TestRun[];
   loading: boolean;
@@ -90,6 +99,11 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   setConnected: (val) => set({ connected: val }),
   browserOnline: true, // Default to true; DataProvider effect sets actual value on mount
   setBrowserOnline: (val) => set({ browserOnline: val }),
+  toasts: [],
+  addToast: (message, type = 'info') => set(s => ({
+    toasts: [...s.toasts, { id: crypto.randomUUID(), message, type }]
+  })),
+  removeToast: (id) => set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })),
   theme: (() => { try { return (localStorage.getItem('bdd-theme') as Theme) || 'dark'; } catch { return 'dark' as Theme; } })(),
   toggleTheme: () => set(s => {
     const next = s.theme === 'dark' ? 'light' : 'dark';

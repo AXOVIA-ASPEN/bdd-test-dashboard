@@ -6,6 +6,7 @@ import { DataProvider } from '@/components/data-provider';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ConnectionBanner } from '@/components/connection-banner';
 import { Footer } from '@/components/footer';
+import { ToastContainer } from '@/components/toast';
 
 export const metadata: Metadata = {
   title: 'Silverline | Acceptance Test Dashboard',
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <div aria-live="polite" aria-atomic="true" className="sr-only" id="announcer" />
               </main>
               <Footer />
+              <ToastContainer />
             </DataProvider>
           </ThemeProvider>
         </ErrorBoundary>

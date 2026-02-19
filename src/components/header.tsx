@@ -28,13 +28,20 @@ function useRelativeTime(iso: string | null) {
 }
 
 export function Header() {
-  const { theme, toggleTheme, loading, retry, lastFetchedAt } = useDashboardStore();
+  const { theme, toggleTheme, loading, retry, lastFetchedAt, addToast } = useDashboardStore();
   const relTime = useRelativeTime(lastFetchedAt);
   const [showShortcuts, setShowShortcuts] = useState(false);
 
+  const handleRefresh = () => {
+    if (!loading) {
+      retry();
+      addToast('Refreshing data...', 'info');
+    }
+  };
+
   // Register global keyboard shortcuts
   useKeyboardShortcuts([
-    { key: 'r', handler: () => { if (!loading) retry(); } },
+    { key: 'r', handler: handleRefresh },
     { key: 't', handler: toggleTheme },
     { key: '?', handler: () => setShowShortcuts(prev => !prev) },
   ]);
@@ -57,7 +64,7 @@ export function Header() {
           )}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => { if (!loading) retry(); }}
+            onClick={handleRefresh}
             disabled={loading}
             className="p-2 rounded-lg hover:bg-card-border/50 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             aria-label="Refresh data"
