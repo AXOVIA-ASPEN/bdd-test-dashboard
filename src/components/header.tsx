@@ -64,14 +64,14 @@ export function Header() {
         </Link>
         <nav aria-label="Site controls" className="flex items-center gap-2">
           {relTime && (
-            <span className="text-xs text-muted hidden sm:inline">Updated {relTime}</span>
+            <span className="text-xs text-muted hidden sm:inline print:hidden">Updated {relTime}</span>
           )}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleRefresh}
             disabled={loading}
             data-testid={TEST_IDS.HEADER.REFRESH_BTN}
-            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 print:hidden"
             aria-label="Refresh data"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
@@ -79,7 +79,7 @@ export function Header() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowShortcuts(true)}
-            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 print:hidden"
             aria-label="Show keyboard shortcuts"
           >
             <HelpCircle className="w-5 h-5" />
@@ -88,7 +88,7 @@ export function Header() {
             whileTap={{ scale: 0.9 }}
             onClick={toggleTheme}
             data-testid={TEST_IDS.HEADER.THEME_TOGGLE_BTN}
-            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="p-2 rounded-lg hover:bg-card-border/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 print:hidden"
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
