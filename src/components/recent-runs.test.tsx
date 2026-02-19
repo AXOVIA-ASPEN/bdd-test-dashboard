@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { RecentRuns } from './recent-runs';
 
 vi.mock('framer-motion', () => ({
@@ -187,16 +187,13 @@ describe('RecentRuns', () => {
       },
     ];
 
-    const { rerender } = render(<RecentRuns />);
+    render(<RecentRuns />);
     // Initially, both runs visible
     expect(screen.getAllByRole('link')).toHaveLength(2);
 
     // Click "Failed" filter
     const failedButton = screen.getByRole('button', { name: /Failed \(1\)/ });
-    failedButton.click();
-
-    // Re-render to apply filter
-    rerender(<RecentRuns />);
+    fireEvent.click(failedButton);
     
     // Now only failed runs should be visible
     const links = screen.getAllByRole('link');
@@ -239,12 +236,10 @@ describe('RecentRuns', () => {
       summary: { passed: 5, failed: 0, skipped: 0, total: 5 },
     }));
 
-    const { rerender } = render(<RecentRuns />);
+    render(<RecentRuns />);
     
     const showMoreButton = screen.getByText(/Show More/);
-    showMoreButton.click();
-    
-    rerender(<RecentRuns />);
+    fireEvent.click(showMoreButton);
     
     // Should now show all 15 runs
     expect(screen.getAllByRole('link')).toHaveLength(15);
@@ -287,13 +282,11 @@ describe('RecentRuns', () => {
       },
     ];
 
-    const { rerender } = render(<RecentRuns />);
+    render(<RecentRuns />);
     
     // Click "Failed" filter (no failed runs)
     const failedButton = screen.getByRole('button', { name: /Failed \(0\)/ });
-    failedButton.click();
-    
-    rerender(<RecentRuns />);
+    fireEvent.click(failedButton);
     
     expect(screen.getByText(/No failed runs found/)).toBeInTheDocument();
   });
@@ -322,17 +315,15 @@ describe('RecentRuns', () => {
       })),
     ];
 
-    const { rerender } = render(<RecentRuns />);
+    render(<RecentRuns />);
     
     // Show more to increase visible count
     const showMoreButton = screen.getByText(/Show More/);
-    showMoreButton.click();
-    rerender(<RecentRuns />);
+    fireEvent.click(showMoreButton);
     
     // Now click a filter - should reset to page size (10)
     const failedButton = screen.getByRole('button', { name: /Failed \(10\)/ });
-    failedButton.click();
-    rerender(<RecentRuns />);
+    fireEvent.click(failedButton);
     
     // Should only show 10 failed runs (page size), not all visible from before
     expect(screen.getAllByRole('link')).toHaveLength(10);
