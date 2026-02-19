@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { formatDate, formatTime, formatDuration, statusBg, statusColor, deriveRunStatus } from '@/lib/utils';
 import Link from 'next/link';
 import { RunDetailSkeleton } from '@/components/run-detail-skeleton';
-import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check, Link2, Download } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock, GitBranch, RotateCcw, ChevronsDownUp, ChevronsUpDown, Copy, Check, Link2, Download, ArrowUp } from 'lucide-react';
 import { Breadcrumb } from '@/components/breadcrumb';
 import { AnimatePresence } from 'framer-motion';
 import { sanitizeTimestamps as sanitize } from '@/lib/firestore-utils';
@@ -307,6 +307,23 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
   const [isLive, setIsLive] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  // Track scroll position to show/hide Back to Top button
+  useEffect(() => {
+    const handleScroll = () => {
+      // Show button after scrolling down 300px
+      setShowBackToTop(window.scrollY > 300);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Scroll to top handler
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // Update URL when status filter changes
   const updateStatusFilter = useCallback(
@@ -703,6 +720,24 @@ export default function RunClient({ projectId, runId }: { projectId: string; run
       {(!run.features || run.features.length === 0) && (
         <div className="text-center py-8 text-muted text-sm bg-card border border-card-border rounded-xl">No detailed results for this run.</div>
       )}
+
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 p-3 bg-accent hover:bg-accent/90 text-white rounded-full shadow-lg transition-colors z-50"
+            aria-label="Back to top"
+            title="Back to top"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
