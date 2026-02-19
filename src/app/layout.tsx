@@ -12,6 +12,20 @@ import { MotionConfig } from 'framer-motion';
 export const metadata: Metadata = {
   title: 'Silverline | Acceptance Test Dashboard',
   description: 'BDD test results visualization for Silverline Software',
+  viewport: 'width=device-width, initial-scale=1',
+  openGraph: {
+    title: 'Silverline Acceptance Test Dashboard',
+    description: 'Real-time BDD test results and trend visualization',
+    url: 'https://silverline-bdd-test-dashboard.web.app',
+    siteName: 'Silverline BDD Dashboard',
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Silverline Acceptance Test Dashboard',
+    description: 'Real-time BDD test results and trend visualization',
+  },
   icons: {
     icon: [
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
