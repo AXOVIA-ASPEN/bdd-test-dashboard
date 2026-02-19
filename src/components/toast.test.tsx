@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { userEvent } from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import { ToastContainer } from './toast';
 import { useDashboardStore } from '@/store/use-dashboard-store';
 import { act } from 'react';
