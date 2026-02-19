@@ -46,7 +46,12 @@ function StepError({ error }: { error: string }) {
       </button>
       {display}
       {lines.length > 3 && (
-        <button onClick={() => setExpanded(!expanded)} className="block mt-1 text-red-600 dark:text-red-400 underline cursor-pointer">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Show less of error message' : 'Show full error message'}
+          className="block mt-1 text-red-600 dark:text-red-400 underline cursor-pointer"
+        >
           {expanded ? 'Show less' : 'Show more'}
         </button>
       )}
@@ -140,6 +145,8 @@ function FeatureSections({ features, statusFilter, setStatusFilter }: { features
           <button
             onClick={() => toggleFeature(key)}
             data-testid={TEST_IDS.RUN_DETAIL.FEATURE_TOGGLE(fi)}
+            aria-expanded={isExpanded}
+            aria-controls={`feature-panel-${key}`}
             className="w-full text-left p-5 flex items-start gap-3 hover:bg-card-border/20 transition-colors cursor-pointer"
           >
             <motion.div
@@ -172,6 +179,7 @@ function FeatureSections({ features, statusFilter, setStatusFilter }: { features
           <AnimatePresence initial={false}>
             {isExpanded && (
               <motion.div
+                id={`feature-panel-${key}`}
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}

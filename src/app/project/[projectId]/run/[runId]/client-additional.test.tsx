@@ -10,7 +10,8 @@ const mockRuns = [
 ];
 
 const mockPush = vi.fn();
-const mockRouter = { push: mockPush };
+const mockReplace = vi.fn();
+const mockRouter = { push: mockPush, replace: mockReplace };
 
 vi.mock('@/store/use-dashboard-store', () => ({
   useDashboardStore: (selector: (s: Record<string, unknown>) => unknown) =>
@@ -82,6 +83,7 @@ describe('RunClient - Additional Coverage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPush.mockClear();
+    mockReplace.mockClear();
   });
 
   it('handles clipboard copy failure gracefully', async () => {
