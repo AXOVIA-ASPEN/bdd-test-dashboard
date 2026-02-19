@@ -103,6 +103,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       (snapshot) => {
         const runs = snapshot.docs.map(d => ({ id: d.id, ...sanitize(d.data()) } as unknown as TestRun));
         useDashboardStore.getState().setRuns(runs);
+        useDashboardStore.getState().setRunsTruncated(snapshot.docs.length === 100);
         useDashboardStore.getState().setConnected(true);
         useDashboardStore.getState().setLastFetchedAt(new Date().toISOString());
         runsReady = true;

@@ -6,7 +6,7 @@ import { formatDate, formatTime, formatDuration, statusBg, generateCsv, download
 import Link from 'next/link';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { RunTestsDialog } from '@/components/run-tests-dialog';
-import { ArrowUpDown, ChevronRight, Download, Filter, Play, Search } from 'lucide-react';
+import { ArrowUpDown, ChevronRight, Download, Filter, Info, Play, Search } from 'lucide-react';
 import { ErrorState } from '@/components/error-state';
 import { ProjectTrendChart } from '@/components/project-trend-chart';
 import { Breadcrumb } from '@/components/breadcrumb';
@@ -44,6 +44,7 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   const project = useDashboardStore(s => s.getProject(projectId));
   const allRuns = useDashboardStore(s => s.runs);
   const projectRuns = useMemo(() => allRuns.filter(r => r.projectId === projectId), [allRuns, projectId]);
+  const runsTruncated = useDashboardStore(s => s.runsTruncated);
   const loading = useDashboardStore(s => s.loading);
   const error = useDashboardStore(s => s.error);
   const retry = useDashboardStore(s => s.retry);
@@ -391,6 +392,12 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
             );
           })}
         </div>
+        {runsTruncated && (
+          <div className="mt-3 px-4 py-2.5 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-2 text-sm text-muted">
+            <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-blue-500" />
+            <p>Showing latest 100 runs. Older runs are not displayed.</p>
+          </div>
+        )}
         {runs.length > 0 && (
           <div className="flex items-center justify-between mt-3 px-1">
             <p className="text-xs text-muted">

@@ -67,6 +67,7 @@ interface DashboardState {
   removeToast: (id: string) => void;
   projects: Project[];
   runs: TestRun[];
+  runsTruncated: boolean;
   loading: boolean;
   error: string | null;
   lastFetchedAt: string | null;
@@ -78,6 +79,7 @@ interface DashboardState {
   toggleTheme: () => void;
   setProjects: (projects: Project[]) => void;
   setRuns: (runs: TestRun[]) => void;
+  setRunsTruncated: (truncated: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setLastFetchedAt: (ts: string | null) => void;
@@ -92,6 +94,7 @@ interface DashboardState {
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   projects: [],
   runs: [],
+  runsTruncated: false,
   loading: true,
   error: null,
   lastFetchedAt: null,
@@ -112,6 +115,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   }),
   setProjects: (projects) => set({ projects }),
   setRuns: (runs) => set({ runs }),
+  setRunsTruncated: (truncated) => set({ runsTruncated: truncated }),
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
   setLastFetchedAt: (ts) => set({ lastFetchedAt: ts }),
