@@ -20,7 +20,11 @@ export function ConnectionBanner() {
           transition={{ duration: 0.3 }}
           className="overflow-hidden"
         >
-          <div className={`text-sm font-medium text-center py-2 px-4 flex items-center justify-center gap-2 ${
+          <div
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            className={`text-sm font-medium text-center py-2 px-4 flex items-center justify-center gap-2 ${
             offline
               ? 'bg-red-500/90 dark:bg-red-600/90 text-red-50'
               : 'bg-amber-500/90 dark:bg-amber-600/90 text-amber-950 dark:text-amber-50'

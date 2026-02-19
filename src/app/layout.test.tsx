@@ -2,6 +2,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import RootLayout from './layout';
 
+// Mock framer-motion
+vi.mock('framer-motion', () => ({
+  MotionConfig: ({ children }: any) => <>{children}</>,
+  motion: {
+    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  },
+  AnimatePresence: ({ children }: any) => <>{children}</>,
+}));
+
 // Mock child components
 vi.mock('@/components/header', () => ({
   Header: () => <header data-testid="header">Header</header>,
@@ -14,6 +23,15 @@ vi.mock('@/components/data-provider', () => ({
 }));
 vi.mock('@/components/error-boundary', () => ({
   ErrorBoundary: ({ children }: any) => <div data-testid="error-boundary">{children}</div>,
+}));
+vi.mock('@/components/connection-banner', () => ({
+  ConnectionBanner: () => null,
+}));
+vi.mock('@/components/footer', () => ({
+  Footer: () => <footer data-testid="footer">Footer</footer>,
+}));
+vi.mock('@/components/toast', () => ({
+  ToastContainer: () => null,
 }));
 
 describe('RootLayout', () => {

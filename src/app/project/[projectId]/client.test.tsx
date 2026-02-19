@@ -442,4 +442,74 @@ describe('ProjectClient', () => {
     expect(screen.getByText('Showing 8 of 8 runs')).toBeInTheDocument();
     expect(screen.queryByText('Show More')).not.toBeInTheDocument();
   });
+
+  it('copies project link to clipboard when copy button is clicked', async () => {
+    const mockWriteText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: mockWriteText,
+      },
+    });
+    render(<ProjectClient projectId="test" />);
+    const copyButton = screen.getByLabelText('Copy link to clipboard');
+    fireEvent.click(copyButton);
+    expect(mockWriteText).toHaveBeenCalledWith(window.location.href);
+    // Wait for the checkmark to appear
+    await vi.waitFor(() => {
+      expect(screen.getByLabelText('Copy link to clipboard')).toBeInTheDocument();
+    });
+  });
+
+  it('handles clipboard copy failure gracefully', async () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const mockWriteText = vi.fn().mockRejectedValue(new Error('Clipboard error'));
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: mockWriteText,
+      },
+    });
+    render(<ProjectClient projectId="test" />);
+    const copyButton = screen.getByLabelText('Copy link to clipboard');
+    fireEvent.click(copyButton);
+    await vi.waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Copy link failed:', expect.any(Error));
+    });
+    consoleSpy.mockRestore();
+  });
+
+  it('exports runs to CSV when export button is clicked', () => {
+    render(<ProjectClient projectId="test" />);
+    const exportButton = screen.getByLabelText('Export runs as CSV');
+    
+    // Mock createElement only when it's called with 'a' tag
+    const originalCreateElement = document.createElement.bind(document);
+    const mockLink = {
+      href: '',
+      download: '',
+      click: vi.fn(),
+      style: {},
+    } as unknown as HTMLAnchorElement;
+    
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'a') {
+        return mockLink;
+      }
+      return originalCreateElement(tagName);
+    });
+    
+    fireEvent.click(exportButton);
+    
+    expect(mockLink.click).toHaveBeenCalled();
+    expect(mockLink.download).toContain('test-project-runs-');
+    expect(mockLink.download).toContain('.csv');
+    vi.restoreAllMocks();
+  });
+
+  it('disables export button when no runs are available', () => {
+    mockState.runs = [];
+    render(<ProjectClient projectId="test" />);
+    const exportButton = screen.getByLabelText('Export runs as CSV');
+    expect(exportButton).toBeDisabled();
+    expect(exportButton).toHaveAttribute('title', 'No runs to export');
+  });
 });

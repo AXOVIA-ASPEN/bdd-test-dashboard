@@ -53,4 +53,27 @@ describe('ConnectionBanner', () => {
     render(<ConnectionBanner />);
     expect(screen.getByText(/You are offline/)).toBeInTheDocument();
   });
+
+  it('has role="alert" when banner is visible (offline)', () => {
+    mockStore.browserOnline = false;
+    render(<ConnectionBanner />);
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveAttribute('aria-live', 'assertive');
+    expect(alert).toHaveAttribute('aria-atomic', 'true');
+  });
+
+  it('has role="alert" when banner is visible (disconnected)', () => {
+    mockStore.connected = false;
+    render(<ConnectionBanner />);
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    expect(alert).toHaveAttribute('aria-live', 'assertive');
+    expect(alert).toHaveAttribute('aria-atomic', 'true');
+  });
+
+  it('has no alert role when connected and online', () => {
+    render(<ConnectionBanner />);
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
 });

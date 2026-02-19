@@ -45,9 +45,11 @@ describe('Sparkline', () => {
   it('renders a circle dot on the last data point', () => {
     render(<Sparkline data={[10, 20, 30]} color="#abcdef" />);
     const svg = screen.getByRole('img');
-    const circle = svg.querySelector('circle');
-    expect(circle).toBeInTheDocument();
-    expect(circle?.getAttribute('fill')).toBe('#abcdef');
+    const circles = svg.querySelectorAll('circle');
+    // Last circle should be the visible dot with the color fill
+    const visibleDot = circles[circles.length - 1];
+    expect(visibleDot).toBeInTheDocument();
+    expect(visibleDot?.getAttribute('fill')).toBe('#abcdef');
   });
 
   it('sets aria-label with formatted durations', () => {
