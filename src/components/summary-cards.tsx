@@ -17,7 +17,7 @@ export function SummaryCards() {
   const projects = useDashboardStore(s => s.projects);
   const runs = useDashboardStore(s => s.runs);
 
-  const { summary, deltas } = useMemo(() => {
+  const { summary, deltas, previousValues } = useMemo(() => {
     // Get latest (index 0) and previous (index 1) runs per project
     const latestRuns: typeof runs = [];
     const previousRuns: typeof runs = [];
@@ -53,6 +53,12 @@ export function SummaryCards() {
 
     return {
       summary: { ...curr, passRate: currPassRate },
+      previousValues: {
+        total: prev.total,
+        passRate: prevPassRate,
+        failed: prev.failed,
+        skipped: prev.skipped,
+      },
       deltas: {
         total: computeDelta(curr.total, prev.total, false),
         passRate: computeDelta(currPassRate, prevPassRate, false),
@@ -112,13 +118,23 @@ export function SummaryCards() {
               {summary[card.key]}{card.suffix}
             </p>
             {deltas[card.key] && (
-              <span className={`text-xs font-medium ${
-                deltas[card.key]!.direction === 'improving'
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : deltas[card.key]!.direction === 'regressing'
-                  ? 'text-red-600 dark:text-red-400'
-                  : 'text-muted'
-              }`}>
+              <span
+                className={`text-xs font-medium cursor-help ${
+                  deltas[card.key]!.direction === 'improving'
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : deltas[card.key]!.direction === 'regressing'
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-muted'
+                }`}
+                title={`Previous: ${previousValues[card.key]}${card.suffix} | ${
+                  deltas[card.key]!.direction === 'improving'
+                    ? '✓ Improving'
+                    : deltas[card.key]!.direction === 'regressing'
+                    ? '✗ Regressing'
+                    : 'Unchanged'
+                }`}
+                role="tooltip"
+              >
                 {deltas[card.key]!.direction === 'unchanged'
                   ? '—'
                   : `${deltas[card.key]!.value > 0 ? '↑' : '↓'} ${Math.abs(deltas[card.key]!.value)}${card.suffix}`
